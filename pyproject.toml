@@ -1,5 +1,5 @@
 [project]
-name = "backend-2026-grupo-05"
+name = "desarrollo-back-end"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 dependencies = []
 
 [project.scripts]
-backend-2026-grupo-05 = "backend_2026_grupo_05:main"
+desarrollo-back-end = "desarrollo_back_end:main"
 
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]
