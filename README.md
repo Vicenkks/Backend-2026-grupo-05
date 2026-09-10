@@ -68,8 +68,8 @@ API REST para la **gestión de reservas de espacios de coworking**, diseñada pa
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/annan-7/backend-2026-grupo-05.git
-cd backend-2026-grupo-XX
+git clone https://github.com/Vicenkks/backend-2026-grupo-05.git
+cd backend-2026-grupo-05
 
 # 2. (Recomendado) Crear y activar entorno virtual
 python -m venv venv
