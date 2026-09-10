@@ -1,0 +1,17 @@
+[project]
+name = "backend-2026-grupo-05"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "annan-7", email = "annanrecord@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+backend-2026-grupo-05 = "backend_2026_grupo_05:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
