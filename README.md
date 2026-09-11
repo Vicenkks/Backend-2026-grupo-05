@@ -118,13 +118,16 @@ backend-2026-grupo-05/
 │   │   ├── availability.py
 │   │   ├── pagination.py
 │   │   ├── filters.py
-│   │   └── error.py
+│   │   ├── error.py
+│   │   └── __init__.py
 │   │
 │   ├── domain/
 │   │   ├── space.py
 │   │   ├── company.py
 │   │   ├── reservation.py
-│   │   └── availability.py
+│   │   ├── validators.py
+│   │   ├── availability.py
+│   │   └── __init__.py
 │   │
 │   ├── services/
 │   │   ├── space_service.py
