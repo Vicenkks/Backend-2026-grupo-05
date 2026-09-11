@@ -1,0 +1,129 @@
+# ============================================
+# .gitignore — Coworking Reservation API
+# Proyecto Backend 2026 - Grupo 05 (ICINF1108)
+# ============================================
+
+# ------------------------------------------
+# Python
+# ------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+**/AGENT.md
+*.egg
+dist/
+build/
+*.whl
+.eggs/
+
+
+# ------------------------------------------
+# Entorno virtual
+# ------------------------------------------
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# ------------------------------------------
+# Variables de entorno y credenciales
+# ⚠️  NUNCA subir secretos al repositorio
+# ------------------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# ------------------------------------------
+# IDEs y editores
+# ------------------------------------------
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim / Neovim
+*.swp
+*.swo
+*~
+
+# ------------------------------------------
+# Jupyter Notebooks (si se usan para pruebas)
+# ------------------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# ------------------------------------------
+# Testing y cobertura
+# ------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ------------------------------------------
+# Sistema operativo
+# ------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ------------------------------------------
+# Logs
+# ------------------------------------------
+*.log
+logs/
+
+# ------------------------------------------
+# Base de datos local (por si se agrega luego)
+# ------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------
+# Documentación generada
+# ------------------------------------------
+docs/_build/
+site/
+
+# ------------------------------------------
+# Misceláneo
+# ------------------------------------------
+*.bak
+*.tmp
+*.temp
+.cache/
+.mypy_cache/
+.ruff_cache/
