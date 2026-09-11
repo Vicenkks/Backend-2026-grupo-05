@@ -110,18 +110,21 @@ backend-2026-grupo-XX/
 │   │   ├── reservas.py
 │   │   └── disponibilidades.py
 │   ├── schemas/                   # DTO y validaciones (Pydantic)
-│   │   ├── espacio.py
-│   │   ├── empresa.py
-│   │   ├── reserva.py
-│   │   ├── disponibilidad.py
+│   │   ├── espacio_dto.py
+│   │   ├── empresa_dto.py
+│   │   ├── reserva_dto.py
+│   │   ├── disponibilidad_dto.py
 │   │   ├── paginacion.py
 │   │   ├── filtros.py
-│   │   └── error.py
+|   |   ├── error.py
+│   │   └── __init__.py
 │   ├── domain/                    # Entidades y reglas del dominio
+|   |   ├── validadores.py
 │   │   ├── espacio.py
 │   │   ├── empresa.py
 │   │   ├── reserva.py
-│   │   └── disponibilidad.py
+|   |   ├── disponibilidad.py
+│   │   └── __init__.py
 │   ├── services/                  # Casos de uso y reglas de negocio
 │   │   ├── espacio_service.py
 │   │   ├── empresa_service.py
