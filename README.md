@@ -101,42 +101,49 @@ uvicorn app.main:app --reload
 ## 📁 Estructura del Proyecto
 
 ```
-backend-2026-grupo-XX/
+backend-2026-grupo-05/
 ├── app/
-│   ├── main.py                    # Crea y configura la aplicación FastAPI
-│   ├── routers/                   # Recibe solicitudes HTTP
-│   │   ├── espacios.py
-│   │   ├── empresas.py
-│   │   ├── reservas.py
-│   │   └── disponibilidades.py
-│   ├── schemas/                   # DTO y validaciones (Pydantic)
-│   │   ├── espacio_dto.py
-│   │   ├── empresa_dto.py
-│   │   ├── reserva_dto.py
-│   │   ├── disponibilidad_dto.py
-│   │   ├── paginacion.py
-│   │   ├── filtros.py
-|   |   ├── error.py
+│   ├── main.py
+│   │
+│   ├── routers/
+│   │   ├── spaces.py
+│   │   ├── companies.py
+│   │   ├── reservations.py
+│   │   └── availabilities.py
+│   │
+│   ├── schemas/
+│   │   ├── space.py
+│   │   ├── company.py
+│   │   ├── reservation.py
+│   │   ├── availability.py
+│   │   ├── pagination.py
+│   │   ├── filters.py
+│   │   ├── error.py
 │   │   └── __init__.py
-│   ├── domain/                    # Entidades y reglas del dominio
-|   |   ├── validadores.py
-│   │   ├── espacio.py
-│   │   ├── empresa.py
-│   │   ├── reserva.py
-|   |   ├── disponibilidad.py
+│   │
+│   ├── domain/
+│   │   ├── space.py
+│   │   ├── company.py
+│   │   ├── reservation.py
+│   │   ├── validators.py
+│   │   ├── availability.py
 │   │   └── __init__.py
-│   ├── services/                  # Casos de uso y reglas de negocio
-│   │   ├── espacio_service.py
-│   │   ├── empresa_service.py
-│   │   ├── reserva_service.py
-│   │   └── disponibilidad_service.py
-│   └── repositories/              # Almacenamiento en memoria
-│       ├── espacio_repository.py
-│       ├── empresa_repository.py
-│       ├── reserva_repository.py
-│       └── disponibilidad_repository.py
+│   │
+│   ├── services/
+│   │   ├── space_service.py
+│   │   ├── company_service.py
+│   │   ├── reservation_service.py
+│   │   └── availability_service.py
+│   │
+│   └── repositories/
+│       ├── space_repository.py
+│       ├── company_repository.py
+│       ├── reservation_repository.py
+│       └── availability_repository.py
+│
 ├── tests_manual/
-│   └── coworking_collection.json  # Colección Thunder Client / Postman
+│   └── coworking_collection.json
+│
 ├── README.md
 └── requirements.txt
 ```
@@ -147,10 +154,10 @@ backend-2026-grupo-XX/
 
 | Integrante | Rol | Responsabilidad Principal | GitHub |
 |------------|-----|---------------------------|--------|
-| [Nombre Integrante A] | Jefe/a de grupo | Coordinación + Documentación e integración | [@usuario](https://github.com/usuario) |
-| [Nombre Integrante B] | Desarrollador | Dominio y datos | [@usuario](https://github.com/usuario) |
-| [Nombre Integrante C] | Desarrollador | API y lógica de negocio | [@usuario](https://github.com/usuario) |
-| [Nombre Integrante D] | Desarrollador | Calidad y pruebas | [@usuario](https://github.com/usuario) |
+| Vicente Huilcaman | Jefe/a de grupo | Coordinación + Documentación e integración |
+| Matias Espinoza | Desarrollador | Dominio y datos |
+| Annan John | Desarrollador | API y lógica de negocio |
+| Alonso Astete | Desarrollador | Calidad y pruebas |
 
 > En grupos de 5 integrantes, la quinta persona asume un área adicional.
 
