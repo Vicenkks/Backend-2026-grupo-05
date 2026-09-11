@@ -9,7 +9,7 @@ class ErrorResponse(BaseModel):
     error: dict
 
     @classmethod
-    def crear(cls, code: str, message: str, details: List[dict] = None):
+    def create(cls, code: str, message: str, details: List[dict] = None):
         return cls(
             error={
                 "code": code,
