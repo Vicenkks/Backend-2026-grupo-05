@@ -1,4 +1,10 @@
 from app.domain.availability import Availability
+#Obs: So basically, we will use dictionary as db,
+# our crud will be like:
+# add -> dict[IdofSomething] = value
+# get_by_id -> dict.get(IdofSomething)
+# get_all -> list(dict.values())
+# delete -> dict.pop(IdofSomething, None)
 
 class AvailabilityRepository:
     def __init__(self):
