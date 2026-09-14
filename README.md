@@ -1,7 +1,7 @@
 #  Backend 2026 - Grupo 05 | Coworking Reservation API
 
 > **Curso:** Desarrollo de Backend (ICINF1108)  
-> **Entrega:** Semana 6 — 14 y 16 de septiembre de 2026  
+> **Entrega:** Sin confirmar
 > **Estado:** 🟢 En desarrollo
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/)
@@ -103,7 +103,7 @@ uv run uvicorn app.main:app --reload
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 backend-2026-grupo-05/
@@ -279,7 +279,7 @@ classDiagram
 
 ---
 
-## 🧪 Ejemplos de Uso
+## Ejemplos de Uso
 
 ### Crear un espacio
 
@@ -339,7 +339,7 @@ curl -X POST http://localhost:8000/reservations \
 
 ---
 
-## ✅ Validaciones Implementadas
+## Validaciones Implementadas
 
 | # | Tipo | Ejemplo | Ubicación |
 |---|------|---------|-----------|
@@ -352,7 +352,7 @@ curl -X POST http://localhost:8000/reservations \
 
 ---
 
-## ⚠️ Manejo de Errores
+## Manejo de Errores
 
 Todos los errores controlados mantienen la **misma estructura JSON**:
 
@@ -380,7 +380,7 @@ Todos los errores controlados mantienen la **misma estructura JSON**:
 
 ---
 
-## 🧭 Decisiones Técnicas
+## Decisiones Técnicas
 
 | Decisión | Justificación |
 |----------|---------------|
