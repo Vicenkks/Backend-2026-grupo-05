@@ -1,0 +1,112 @@
+@baseUrl = http://localhost:8000
+
+### Comprobar que la API funciona
+GET {{baseUrl}}/
+
+### Crear un espacio
+POST {{baseUrl}}/spaces
+Content-Type: application/json
+
+{
+  "spaceName": "Sala Norte",
+  "type": "meeting_room",
+  "capacity": 10,
+  "status": "active",
+  "description": "Sala con proyector"
+}
+
+### Listar espacios con filtro, orden y paginacion
+GET {{baseUrl}}/spaces?type=meeting_room&status=active&sort_by=capacity&direction=asc&page=1&limit=20
+
+### Error de validacion: capacidad incorrecta
+POST {{baseUrl}}/spaces
+Content-Type: application/json
+
+{
+  "spaceName": "Sala incorrecta",
+  "type": "meeting_room",
+  "capacity": 0,
+  "description": "Ejemplo de error"
+}
+
+### Crear una empresa
+POST {{baseUrl}}/companies
+Content-Type: application/json
+
+{
+  "companyName": "Empresa Uno",
+  "rut": "12345678-9",
+  "email": "empresa@ejemplo.cl",
+  "phone": "12345678",
+  "address": "Calle Principal 123"
+}
+
+### Recurso que no existe
+GET {{baseUrl}}/spaces/id-inexistente
+
+### Para las siguientes pruebas, reemplazar los ID con los obtenidos arriba
+@spaceId = REEMPLAZAR_ID_ESPACIO
+@companyId = REEMPLAZAR_ID_EMPRESA
+
+### Obtener un espacio por ID
+GET {{baseUrl}}/spaces/{{spaceId}}
+
+### Actualizar un espacio
+PUT {{baseUrl}}/spaces/{{spaceId}}
+Content-Type: application/json
+
+{
+  "capacity": 12
+}
+
+### Obtener una empresa por ID
+GET {{baseUrl}}/companies/{{companyId}}
+
+### Actualizar una empresa
+PUT {{baseUrl}}/companies/{{companyId}}
+Content-Type: application/json
+
+{
+  "phone": "87654321"
+}
+
+### Crear una disponibilidad
+POST {{baseUrl}}/availabilities
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "weekday": "monday",
+  "opening_time": "09:00:00",
+  "closing_time": "18:00:00"
+}
+
+### Crear una reserva
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "companyId": "{{companyId}}",
+  "start_date": "2030-01-10T10:00:00",
+  "end_date": "2030-01-10T11:00:00",
+  "reason": "Reunion de planificacion"
+}
+
+### Intentar una reserva superpuesta: debe responder 409
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+
+{
+  "spaceId": "{{spaceId}}",
+  "companyId": "{{companyId}}",
+  "start_date": "2030-01-10T10:30:00",
+  "end_date": "2030-01-10T11:30:00",
+  "reason": "Reunion superpuesta"
+}
+
+### Listar disponibilidades
+GET {{baseUrl}}/availabilities
+
+### Listar reservas
+GET {{baseUrl}}/reservations?page=1&limit=20&sort_by=created_at&direction=desc
