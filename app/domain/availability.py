@@ -38,10 +38,17 @@ class Availability:
         )
 
     def update_schedule(self, opening_time: time = None, closing_time: time = None):
+        new_opening = self.opening_time
+        new_closing = self.closing_time
+
         if opening_time is not None:
-            self.opening_time = opening_time
+            new_opening = opening_time
         if closing_time is not None:
-            self.closing_time = closing_time
-        if self.closing_time <= self.opening_time:
+            new_closing = closing_time
+
+        if new_closing <= new_opening:
             raise ValueError("Closing time must be later than opening time")
+
+        self.opening_time = new_opening
+        self.closing_time = new_closing
         self.updated_at = datetime.now()

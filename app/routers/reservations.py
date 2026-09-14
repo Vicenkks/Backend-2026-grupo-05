@@ -17,7 +17,7 @@ def _serialize(reservation):
 def _handle_error(error: Exception) -> None:
 	if isinstance(error, LookupError):
 		raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND", "message": str(error), "details": []}) from error
-	if "already reserved" in str(error):
+	if "already" in str(error):
 		raise HTTPException(status_code=409, detail={"code": "CONFLICT", "message": str(error), "details": []}) from error
 	raise HTTPException(status_code=400, detail={"code": "BUSINESS_RULE_VIOLATION", "message": str(error), "details": []}) from error
 
