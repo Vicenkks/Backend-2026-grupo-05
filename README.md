@@ -61,7 +61,7 @@ API REST para la **gestión de reservas de espacios de coworking**, diseñada pa
 ### Requisitos previos
 
 - Python 3.11 o superior
-- pip (gestor de paquetes)
+- uv (gestor de dependencias)
 - Git
 
 ### Pasos de instalación
@@ -71,25 +71,17 @@ API REST para la **gestión de reservas de espacios de coworking**, diseñada pa
 git clone https://github.com/Vicenkks/backend-2026-grupo-05.git
 cd backend-2026-grupo-05
 
-# 2. (Recomendado) Crear y activar entorno virtual
-python -m venv venv
+# 2. Instalar dependencias
+uv sync
 
-# Linux 
-source venv/bin/activate
-
-
-
-# 3. Instalar dependencias
-pip install -r requirements.txt
-
-# 4. Ejecutar el servidor
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# 3. Ejecutar el servidor
+uv run uvicorn app.main:app --reload
 ```
 
 ### Comando único recomendado
 
 ```bash
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 >  La API estará disponible en: **http://localhost:8000**  
@@ -142,10 +134,10 @@ backend-2026-grupo-05/
 │       └── availability_repository.py
 │
 ├── tests_manual/
-│   └── coworking_collection.json
+│   └── coworking.http
 │
 ├── README.md
-└── requirements.txt
+└── pyproject.toml
 ```
 
 ---
@@ -234,41 +226,41 @@ classDiagram
 
 | Método | URI | Descripción | Código éxito |
 |--------|-----|-------------|--------------|
-| `POST` | `/espacios` | Crear un nuevo espacio | 201 |
-| `GET` | `/espacios` | Listar espacios (filtro + orden + paginación) | 200 |
-| `GET` | `/espacios/{id}` | Obtener un espacio por ID | 200 |
-| `PUT` | `/espacios/{id}` | Actualizar un espacio | 200 |
-| `DELETE` | `/espacios/{id}` | Eliminar un espacio | 204 |
+| `POST` | `/spaces` | Crear un nuevo espacio | 201 |
+| `GET` | `/spaces` | Listar espacios (filtro + orden + paginación) | 200 |
+| `GET` | `/spaces/{id}` | Obtener un espacio por ID | 200 |
+| `PUT` | `/spaces/{id}` | Actualizar un espacio | 200 |
+| `DELETE` | `/spaces/{id}` | Eliminar un espacio | 204 |
 
 ### Endpoints — Empresas
 
 | Método | URI | Descripción | Código éxito |
 |--------|-----|-------------|--------------|
-| `POST` | `/empresas` | Crear una nueva empresa | 201 |
-| `GET` | `/empresas` | Listar empresas (filtro + orden + paginación) | 200 |
-| `GET` | `/empresas/{id}` | Obtener una empresa por ID | 200 |
-| `PUT` | `/empresas/{id}` | Actualizar una empresa | 200 |
-| `DELETE` | `/empresas/{id}` | Eliminar una empresa | 204 |
+| `POST` | `/companies` | Crear una nueva empresa | 201 |
+| `GET` | `/companies` | Listar empresas | 200 |
+| `GET` | `/companies/{id}` | Obtener una empresa por ID | 200 |
+| `PUT` | `/companies/{id}` | Actualizar una empresa | 200 |
+| `DELETE` | `/companies/{id}` | Eliminar una empresa | 204 |
 
 ### Endpoints — Reservas
 
 | Método | URI | Descripción | Código éxito |
 |--------|-----|-------------|--------------|
-| `POST` | `/reservas` | Crear una nueva reserva | 201 |
-| `GET` | `/reservas` | Listar reservas (filtro + orden + paginación) | 200 |
-| `GET` | `/reservas/{id}` | Obtener una reserva por ID | 200 |
-| `PUT` | `/reservas/{id}` | Actualizar una reserva | 200 |
-| `DELETE` | `/reservas/{id}` | Eliminar una reserva | 204 |
+| `POST` | `/reservations` | Crear una nueva reserva | 201 |
+| `GET` | `/reservations` | Listar reservas (filtro + orden + paginación) | 200 |
+| `GET` | `/reservations/{id}` | Obtener una reserva por ID | 200 |
+| `PUT` | `/reservations/{id}` | Actualizar una reserva | 200 |
+| `DELETE` | `/reservations/{id}` | Eliminar una reserva | 204 |
 
 ### Endpoints — Disponibilidades
 
 | Método | URI | Descripción | Código éxito |
 |--------|-----|-------------|--------------|
-| `POST` | `/disponibilidades` | Crear una disponibilidad | 201 |
-| `GET` | `/disponibilidades` | Listar disponibilidades | 200 |
-| `GET` | `/disponibilidades/{id}` | Obtener una disponibilidad por ID | 200 |
-| `PUT` | `/disponibilidades/{id}` | Actualizar una disponibilidad | 200 |
-| `DELETE` | `/disponibilidades/{id}` | Eliminar una disponibilidad | 204 |
+| `POST` | `/availabilities` | Crear una disponibilidad | 201 |
+| `GET` | `/availabilities` | Listar disponibilidades | 200 |
+| `GET` | `/availabilities/{id}` | Obtener una disponibilidad por ID | 200 |
+| `PUT` | `/availabilities/{id}` | Actualizar una disponibilidad | 200 |
+| `DELETE` | `/availabilities/{id}` | Eliminar una disponibilidad | 204 |
 
 > **Total:** 20 endpoints funcionales (supera el mínimo de 12 exigido).
 
@@ -279,21 +271,21 @@ classDiagram
 ### Crear un espacio
 
 ```bash
-curl -X POST http://localhost:8000/espacios \
+curl -X POST http://localhost:8000/spaces \
   -H "Content-Type: application/json" \
   -d '{
-    "nombre": "Sala Innovación",
-    "tipo": "sala_reunion",
-    "capacidad": 10,
-    "estado": "activo",
-    "descripcion": "Sala equipada con pizarra y proyector"
+    "spaceName": "Sala Innovación",
+    "type": "meeting_room",
+    "capacity": 10,
+    "status": "active",
+    "description": "Sala equipada con pizarra y proyector"
   }'
 ```
 
 ### Listar espacios con filtro, orden y paginación
 
 ```bash
-curl "http://localhost:8000/espacios?tipo=sala_reunion&estado=activo&ordenar_por=capacidad&direccion=desc&pagina=1&limite=10"
+curl "http://localhost:8000/spaces?type=meeting_room&status=active&sort_by=capacity&direction=desc&page=1&limit=10"
 ```
 
 **Respuesta:**
@@ -301,34 +293,34 @@ curl "http://localhost:8000/espacios?tipo=sala_reunion&estado=activo&ordenar_por
 {
   "items": [
     {
-      "id": "a1b2c3d4-...",
-      "nombre": "Sala Innovación",
-      "tipo": "sala_reunion",
-      "capacidad": 10,
-      "estado": "activo",
-      "descripcion": "Sala equipada con pizarra y proyector",
-      "creado_en": "2026-09-11T10:00:00",
-      "actualizado_en": "2026-09-11T10:00:00"
+      "spaceId": "a1b2c3d4-...",
+      "spaceName": "Sala Innovación",
+      "type": "meeting_room",
+      "capacity": 10,
+      "status": "active",
+      "description": "Sala equipada con pizarra y proyector",
+      "created_at": "2026-09-11T10:00:00",
+      "updated_at": "2026-09-11T10:00:00"
     }
   ],
   "total": 1,
-  "pagina": 1,
-  "limite": 10,
-  "total_paginas": 1
+  "page": 1,
+  "limit": 10,
+  "total_pages": 1
 }
 ```
 
 ### Crear una reserva (con validación de reglas de negocio)
 
 ```bash
-curl -X POST http://localhost:8000/reservas \
+curl -X POST http://localhost:8000/reservations \
   -H "Content-Type: application/json" \
   -d '{
-    "espacio_id": "a1b2c3d4-...",
-    "empresa_id": "e5f6g7h8-...",
-    "fecha_inicio": "2026-09-15T10:00:00",
-    "fecha_fin": "2026-09-15T12:00:00",
-    "motivo": "Reunión de planificación"
+    "spaceId": "a1b2c3d4-...",
+    "companyId": "e5f6g7h8-...",
+    "start_date": "2026-09-15T10:00:00",
+    "end_date": "2026-09-15T12:00:00",
+    "reason": "Reunión de planificación"
   }'
 ```
 
