@@ -24,7 +24,6 @@ def _handle_error(error: Exception) -> None:
 
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=CompanyResponse)
 def create_company(data: CompanyCreate):
-	"""Create a new company."""
 	try:
 		return _serialize(service.create(data))
 	except (LookupError, ValueError) as error:
@@ -33,7 +32,6 @@ def create_company(data: CompanyCreate):
 
 @router.get("")
 def list_companies(page: int = 1, limit: int = 20, sort_by: str = "created_at", direction: str = "desc"):
-	"""List companies using sorting and pagination."""
 	if page < 1 or not 1 <= limit <= 100 or direction not in {"asc", "desc"}:
 		raise HTTPException(status_code=422, detail="Invalid pagination parameters")
 	if sort_by not in {"companyName", "rut", "email", "phone", "address", "created_at", "updated_at"}:
@@ -47,7 +45,6 @@ def list_companies(page: int = 1, limit: int = 20, sort_by: str = "created_at", 
 
 @router.get("/{company_id}", response_model=CompanyResponse)
 def get_company(company_id: str):
-	"""Get one company by its ID."""
 	try:
 		return _serialize(service.get_by_id(company_id))
 	except (LookupError, ValueError) as error:
@@ -56,7 +53,6 @@ def get_company(company_id: str):
 
 @router.put("/{company_id}", response_model=CompanyResponse)
 def update_company(company_id: str, data: CompanyUpdate):
-	"""Update an existing company."""
 	try:
 		return _serialize(service.update(company_id, data))
 	except (LookupError, ValueError) as error:
@@ -65,7 +61,6 @@ def update_company(company_id: str, data: CompanyUpdate):
 
 @router.delete("/{company_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_company(company_id: str) -> Response:
-	"""Delete a company when it has no reservations."""
 	try:
 		service.delete(company_id)
 	except (LookupError, ValueError) as error:

@@ -42,7 +42,6 @@ def create_space(data: SpaceCreate):
 
 @router.get("")
 def list_spaces(page: int = 1, limit: int = 20, sort_by: str = "created_at", direction: str = "desc", type: str | None = None, status: str | None = None, min_capacity: int | None = None):
-	"""List spaces using filters, sorting and pagination."""
 	if page < 1 or not 1 <= limit <= 100 or direction not in {"asc", "desc"}:
 		raise HTTPException(status_code=422, detail="Invalid pagination parameters")
 	if status is not None and status not in {"active", "inactive", "maintenance"}:
@@ -66,7 +65,6 @@ def list_spaces(page: int = 1, limit: int = 20, sort_by: str = "created_at", dir
 
 @router.get("/{space_id}", response_model=SpaceResponse)
 def get_space(space_id: str):
-	"""Get one space by its ID."""
 	try:
 		return _serialize(service.get_by_id(space_id))
 	except (LookupError, ValueError) as error:
@@ -75,7 +73,6 @@ def get_space(space_id: str):
 
 @router.put("/{space_id}", response_model=SpaceResponse)
 def update_space(space_id: str, data: SpaceUpdate):
-	"""Update an existing space."""
 	try:
 		return _serialize(service.update(space_id, data))
 	except (LookupError, ValueError) as error:
@@ -84,7 +81,6 @@ def update_space(space_id: str, data: SpaceUpdate):
 
 @router.delete("/{space_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_space(space_id: str) -> Response:
-	"""Delete a space when it has no related records."""
 	try:
 		service.delete(space_id)
 	except (LookupError, ValueError) as error:
