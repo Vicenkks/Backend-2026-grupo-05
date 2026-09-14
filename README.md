@@ -27,6 +27,19 @@ API REST para la **gestión de reservas de espacios de coworking**, diseñada pa
 | **P6** | Exclusiones | Sistema de pagos · Autenticación de usuarios · Notificaciones por email |
 | **P7** | Criterios de aceptación | (1) No reservar espacios inactivos. (2) Sin conflictos de horario en un mismo espacio. (3) Una empresa no puede tener dos reservas simultáneas. (4) Fecha fin > fecha inicio. (5) Duración mínima 30 min. |
 
+La API debe permitir:
+
+1. Registrar espacios de coworking.
+2. Consultar los espacios disponibles.
+3. Modificar la información de un espacio.
+4. Eliminar un espacio.
+5. Registrar empresas.
+6. Registrar y consultar reservas.
+7. Modificar o eliminar reservas.
+8. Registrar horarios de disponibilidad.
+9. Filtrar, ordenar y paginar los espacios.
+10. Rechazar reservas que tengan conflictos de horario.
+
 ---
 
 ##  Características Principales

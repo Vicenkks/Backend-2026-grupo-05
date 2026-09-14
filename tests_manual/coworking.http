@@ -48,6 +48,28 @@ GET {{baseUrl}}/spaces/id-inexistente
 @spaceId = REEMPLAZAR_ID_ESPACIO
 @companyId = REEMPLAZAR_ID_EMPRESA
 
+### Obtener un espacio por ID
+GET {{baseUrl}}/spaces/{{spaceId}}
+
+### Actualizar un espacio
+PUT {{baseUrl}}/spaces/{{spaceId}}
+Content-Type: application/json
+
+{
+  "capacity": 12
+}
+
+### Obtener una empresa por ID
+GET {{baseUrl}}/companies/{{companyId}}
+
+### Actualizar una empresa
+PUT {{baseUrl}}/companies/{{companyId}}
+Content-Type: application/json
+
+{
+  "phone": "87654321"
+}
+
 ### Crear una disponibilidad
 POST {{baseUrl}}/availabilities
 Content-Type: application/json
@@ -82,3 +104,9 @@ Content-Type: application/json
   "end_date": "2030-01-10T11:30:00",
   "reason": "Reunion superpuesta"
 }
+
+### Listar disponibilidades
+GET {{baseUrl}}/availabilities
+
+### Listar reservas
+GET {{baseUrl}}/reservations?page=1&limit=20&sort_by=created_at&direction=desc
