@@ -1,82 +1,29 @@
-from datetime import time
-
 import pytest
 
-from app.domain.availability import Availability, Weekday
+from app.domain.space import Space
 
 
-def test_create_availability_with_valid_data():
-    availability = Availability.create(
-        spaceId="space-1",
-        weekday=Weekday.MONDAY,
-        opening_time=time(9, 0),
-        closing_time=time(18, 0),
+def test_create_space_valid():
+    space = Space.create(
+        spaceName="Sala Innovación",
+        type="meeting_room",
+        capacity=10,
+        description="Sala equipada con pizarra y proyector",
     )
 
-    assert availability.spaceId == "space-1"
-    assert availability.weekday == Weekday.MONDAY
-    assert availability.opening_time == time(9, 0)
-    assert availability.closing_time == time(18, 0)
-    assert availability.availabilityId is not None
+    assert space.spaceName == "Sala Innovación"
+    assert space.capacity == 10
 
 
-def test_create_availability_with_closing_before_opening_raises_error():
+def test_create_space_invalid_capacity_raises_error():
     with pytest.raises(ValueError):
-        Availability.create(
-            spaceId="space-1",
-            weekday=Weekday.MONDAY,
-            opening_time=time(18, 0),
-            closing_time=time(9, 0),
-        )
+        Space.create(spaceName="Sala 1", type="office", capacity=0, description="desc")
 
 
-def test_create_availability_with_equal_times_raises_error():
-    with pytest.raises(ValueError):
-        Availability.create(
-            spaceId="space-1",
-            weekday=Weekday.MONDAY,
-            opening_time=time(9, 0),
-            closing_time=time(9, 0),
-        )
+def test_update_space_changes_fields():
+    space = Space.create(spaceName="Sala 1", type="office", capacity=5, description="desc")
 
+    space.update(spaceName="Sala Renovada", capacity=20)
 
-def test_update_schedule_changes_times():
-    availability = Availability.create(
-        spaceId="space-1",
-        weekday=Weekday.MONDAY,
-        opening_time=time(9, 0),
-        closing_time=time(18, 0),
-    )
-    original_updated_at = availability.updated_at
-
-    availability.update_schedule(opening_time=time(8, 0), closing_time=time(20, 0))
-
-    assert availability.opening_time == time(8, 0)
-    assert availability.closing_time == time(20, 0)
-    assert availability.updated_at >= original_updated_at
-
-
-def test_update_schedule_with_invalid_result_raises_error():
-    availability = Availability.create(
-        spaceId="space-1",
-        weekday=Weekday.MONDAY,
-        opening_time=time(9, 0),
-        closing_time=time(18, 0),
-    )
-
-    with pytest.raises(ValueError):
-        availability.update_schedule(opening_time=time(19, 0))
-
-
-def test_update_schedule_with_partial_update_keeps_other_value():
-    availability = Availability.create(
-        spaceId="space-1",
-        weekday=Weekday.MONDAY,
-        opening_time=time(9, 0),
-        closing_time=time(18, 0),
-    )
-
-    availability.update_schedule(closing_time=time(20, 0))
-
-    assert availability.opening_time == time(9, 0)
-    assert availability.closing_time == time(20, 0)
+    assert space.spaceName == "Sala Renovada"
+    assert space.capacity == 20
