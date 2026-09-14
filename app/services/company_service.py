@@ -4,8 +4,9 @@ from app.schemas.company import CompanyCreate, CompanyUpdate
 
 
 class CompanyService:
-	def __init__(self, company_repository: CompanyRepositry) -> None:
+	def __init__(self, company_repository: CompanyRepositry, reservation_repository=None) -> None:
 		self.company_repository = company_repository
+		self.reservation_repository = reservation_repository
 
 	def create(self, data: CompanyCreate) -> Company:
 		company = Company.create(
@@ -39,5 +40,9 @@ class CompanyService:
 
 	def delete(self, company_id: str) -> None:
 		company = self.get_by_id(company_id)
+		if self.reservation_repository is not None:
+			for reservation in self.reservation_repository.get_all():
+				if reservation.companyId == company_id:
+					raise ValueError("Cannot delete a company with reservations")
 		if not self.company_repository.delete(company):
 			raise LookupError(f"Company '{company_id}' was not found")

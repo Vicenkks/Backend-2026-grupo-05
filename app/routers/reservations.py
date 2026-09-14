@@ -3,10 +3,10 @@ from math import ceil
 from fastapi import APIRouter, HTTPException, Response, status
 
 from app.repositories.instances import company_repository, reservation_repository, space_repository
-from app.schemas.reservation import ReservationCreate, ReservationUpdate
+from app.schemas.reservation import ReservationCreate, ReservationResponse, ReservationUpdate
 from app.services.reservation_service import ReservationService
 
-router = APIRouter(prefix="/reservations", tags=["Reservations"])
+router = APIRouter(prefix="/reservations", tags=["Reservations"], responses={400: {"description": "Business rule error"}, 404: {"description": "Reservation not found"}, 409: {"description": "Schedule conflict"}, 422: {"description": "Invalid data"}})
 service = ReservationService(reservation_repository, space_repository, company_repository)
 
 
@@ -22,8 +22,9 @@ def _handle_error(error: Exception) -> None:
 	raise HTTPException(status_code=400, detail={"code": "BUSINESS_RULE_VIOLATION", "message": str(error), "details": []}) from error
 
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED, response_model=ReservationResponse)
 def create_reservation(data: ReservationCreate):
+	"""Create a reservation after checking its business rules."""
 	try:
 		return _serialize(service.create(data))
 	except (LookupError, ValueError) as error:
@@ -32,31 +33,36 @@ def create_reservation(data: ReservationCreate):
 
 @router.get("")
 def list_reservations(page: int = 1, limit: int = 20, sort_by: str = "created_at", direction: str = "desc", company_id: str | None = None, status: str | None = None):
+	"""List reservations using filters, sorting and pagination."""
 	if page < 1 or not 1 <= limit <= 100 or direction not in {"asc", "desc"}:
 		raise HTTPException(status_code=422, detail="Invalid pagination parameters")
+	if status is not None and status not in {"pending", "confirmed", "canceled", "completed"}:
+		raise HTTPException(status_code=422, detail="Invalid status")
+	if sort_by not in {"start_date", "end_date", "status", "reason", "created_at", "updated_at"}:
+		raise HTTPException(status_code=422, detail="Invalid sort field")
 	reservations = service.get_all()
 	if company_id is not None:
 		reservations = [item for item in reservations if item.companyId == company_id]
 	if status is not None:
 		reservations = [item for item in reservations if item.status.value == status]
-	if not all(hasattr(item, sort_by) for item in reservations):
-		raise HTTPException(status_code=422, detail="Invalid sort field")
 	reservations.sort(key=lambda item: getattr(item, sort_by), reverse=direction == "desc")
 	total = len(reservations)
 	start = (page - 1) * limit
 	return {"items": [_serialize(item) for item in reservations[start:start + limit]], "total": total, "page": page, "limit": limit, "total_pages": ceil(total / limit) if total else 0}
 
 
-@router.get("/{reservation_id}")
+@router.get("/{reservation_id}", response_model=ReservationResponse)
 def get_reservation(reservation_id: str):
+	"""Get one reservation by its ID."""
 	try:
 		return _serialize(service.get_by_id(reservation_id))
 	except (LookupError, ValueError) as error:
 		_handle_error(error)
 
 
-@router.put("/{reservation_id}")
+@router.put("/{reservation_id}", response_model=ReservationResponse)
 def update_reservation(reservation_id: str, data: ReservationUpdate):
+	"""Update a reservation and check its business rules again."""
 	try:
 		return _serialize(service.update(reservation_id, data))
 	except (LookupError, ValueError) as error:
@@ -65,6 +71,7 @@ def update_reservation(reservation_id: str, data: ReservationUpdate):
 
 @router.delete("/{reservation_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_reservation(reservation_id: str) -> Response:
+	"""Delete a reservation."""
 	try:
 		service.delete(reservation_id)
 	except (LookupError, ValueError) as error:

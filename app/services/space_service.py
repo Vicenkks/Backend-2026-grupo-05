@@ -4,8 +4,10 @@ from app.schemas.space import SpaceCreate, SpaceUpdate
 
 
 class SpaceService:
-	def __init__(self, space_repository: SpaceRepository) -> None:
+	def __init__(self, space_repository: SpaceRepository, reservation_repository=None, availability_repository=None) -> None:
 		self.space_repository = space_repository
+		self.reservation_repository = reservation_repository
+		self.availability_repository = availability_repository
 
 	def create(self, data: SpaceCreate) -> Space:
 		space = Space.create(
@@ -39,5 +41,13 @@ class SpaceService:
 
 	def delete(self, space_id: str) -> None:
 		space = self.get_by_id(space_id)
+		if self.reservation_repository is not None:
+			for reservation in self.reservation_repository.get_all():
+				if reservation.spaceId == space_id:
+					raise ValueError("Cannot delete a space with reservations")
+		if self.availability_repository is not None:
+			for availability in self.availability_repository.get_all():
+				if availability.spaceId == space_id:
+					raise ValueError("Cannot delete a space with availabilities")
 		if not self.space_repository.delete(space):
 			raise LookupError(f"Space '{space_id}' was not found")
