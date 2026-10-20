@@ -27,3 +27,4 @@ def test_update_space_changes_fields():
 
     assert space.spaceName == "Sala Renovada"
     assert space.capacity == 20
+    
