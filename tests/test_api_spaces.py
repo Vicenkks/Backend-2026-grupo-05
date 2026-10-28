@@ -1,9 +1,9 @@
-def create_space(client, name="Sala Norte", type="meeting_room", capacity=10):
+def create_space(client, name="Sala Informatica", type="meeting_room", capacity=10):
     body = {
         "spaceName": name,
         "type": type,
         "capacity": capacity,
-        "description": "Sala con proyector",
+        "description": "Sala con pcs",
     }
     response = client.post("/spaces", json=body)
     return response.json()["spaceId"]
@@ -18,24 +18,24 @@ def test_health_check(client):
 
 def test_create_space_returns_201(client):
     body = {
-        "spaceName": "Sala Norte",
+        "spaceName": "Sala Informatica",
         "type": "meeting_room",
         "capacity": 10,
-        "description": "Sala con proyector",
+        "description": "Sala con pcs",
     }
 
     response = client.post("/spaces", json=body)
 
     assert response.status_code == 201
-    assert response.json()["spaceName"] == "Sala Norte"
+    assert response.json()["spaceName"] == "Sala Informatica"
 
 
 def test_create_space_invalid_capacity_returns_422(client):
     body = {
-        "spaceName": "Sala Norte",
+        "spaceName": "Sala Informatica",
         "type": "meeting_room",
         "capacity": 0,  
-        "description": "Sala con proyector",
+        "description": "Sala con pcs",
     }
 
     response = client.post("/spaces", json=body)
@@ -53,7 +53,7 @@ def test_get_space_found_returns_200(client):
     response = client.get(f"/spaces/{space_id}")
 
     assert response.status_code == 200
-    assert response.json()["spaceName"] == "Sala Norte"
+    assert response.json()["spaceName"] == "Sala Informatica"
 
 
 def test_get_space_not_found_returns_404(client):
@@ -113,11 +113,11 @@ def test_delete_space_not_found_returns_404(client):
 def test_delete_space_with_reservations_returns_409(client):
     space_id = create_space(client)
     company = {
-        "companyName": "Acme Ltda",
+        "companyName": "Compania Generica",
         "rut": "12345678-9",
-        "email": "contacto@acme.cl",
+        "email": "contacto@gmail.com",
         "phone": "+56912345678",
-        "address": "Av. Siempre Viva 123",
+        "address": "Av. Alemania 123",
     }
     company_id = client.post("/companies", json=company).json()["companyId"]
     reservation = {
@@ -138,7 +138,7 @@ def test_delete_space_with_reservations_returns_409(client):
 
 
 def test_list_spaces_returns_items_and_total(client):
-    create_space(client, name="Sala A")
+    create_space(client, name="Sala Informatica")
     create_space(client, name="Sala B")
 
     response = client.get("/spaces")
