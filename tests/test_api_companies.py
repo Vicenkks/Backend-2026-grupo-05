@@ -60,7 +60,7 @@ def test_create_company_invalid_email_returns_422(client):
 
 def test_create_company_name_too_short_returns_422(client):
     body = {
-        "companyName": "compania generica",  
+        "companyName": "co",  
         "rut": "12345678-9",
         "email": "contacto@acme.cl",
         "phone": "+56912345678",
