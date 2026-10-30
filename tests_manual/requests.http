@@ -1,0 +1,31 @@
+@base = http://localhost:8000
+
+### Contrato
+GET {{base}}/openapi.json
+
+### Éxito: colección con filtro, orden y paginación
+GET {{base}}/espacios?estado=activo&ordenar_por=capacidad&direccion=desc&pagina=1&limite=2
+
+### Éxito: crear espacio. Copiar el id de la respuesta para consultar/actualizar.
+POST {{base}}/espacios
+Content-Type: application/json
+
+{"nombre":"Sala demostración","tipo":"sala_reunion","capacidad":8,"estado":"activo"}
+
+### Error de validación: 422
+POST {{base}}/espacios
+Content-Type: application/json
+
+{"nombre":"Sala inválida","tipo":"sala_reunion","capacidad":0,"estado":"activo"}
+
+### Inexistente: 404
+GET {{base}}/espacios/00000000-0000-4000-8000-000000000000
+
+### Empresa: obtener sus identificadores para probar reservas en Swagger
+GET {{base}}/empresas
+
+### Horarios y reservas relacionados creados por seeders
+GET {{base}}/disponibilidades?limite=100
+
+### Listar reservas persistentes
+GET {{base}}/reservas?limite=100
