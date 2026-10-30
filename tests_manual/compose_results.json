@@ -1,0 +1,12 @@
+{
+  "executed_at_utc": "2026-10-25T02:04:30.582326+00:00",
+  "status": "passed",
+  "database": "PostgreSQL",
+  "driver": "psycopg2",
+  "compose_healthcheck": "healthy",
+  "volume_persistence_after_container_recreation": "passed",
+  "created_space_id": "d47e4242-b0dc-4f4b-978d-3ad24bd2cda7",
+  "expected_capacity": 13,
+  "obtained_capacity": 13,
+  "cleanup_of_test_record": "204"
+}

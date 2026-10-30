@@ -1,0 +1,4900 @@
+{
+  "executed_at_utc": "2026-10-25T02:04:27.158377+00:00",
+  "python": "3.14.8",
+  "status": "passed",
+  "requests": 72,
+  "successful_operations": [
+    "POST /espacios",
+    "GET /espacios",
+    "GET /espacios/{espacio_id}",
+    "PUT /espacios/{espacio_id}",
+    "DELETE /espacios/{espacio_id}",
+    "POST /empresas",
+    "GET /empresas",
+    "GET /empresas/{empresa_id}",
+    "PUT /empresas/{empresa_id}",
+    "DELETE /empresas/{empresa_id}",
+    "POST /disponibilidades",
+    "GET /disponibilidades",
+    "GET /disponibilidades/{disponibilidad_id}",
+    "PUT /disponibilidades/{disponibilidad_id}",
+    "DELETE /disponibilidades/{disponibilidad_id}",
+    "POST /reservas",
+    "GET /reservas",
+    "GET /reservas/{reserva_id}",
+    "POST /reservas/{reserva_id}/cancelar"
+  ],
+  "migration": "passed",
+  "seeding_twice": "passed",
+  "seed_failure_atomic_rollback": "passed",
+  "process_restart_persistence": "passed",
+  "database": "PostgreSQL; two uniquely named databases removed after checks",
+  "driver": "psycopg2",
+  "cases": [
+    {
+      "method": "GET",
+      "path": "/openapi.json",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "openapi": "3.1.0",
+        "info": {
+          "title": "Sistema de Reservas de Coworking",
+          "description": "API de reservas de coworking. Horarios y reservas se interpretan en UTC. Aplicar migraciones antes del inicio.",
+          "version": "1.0.0"
+        },
+        "paths": {
+          "/espacios": {
+            "post": {
+              "tags": [
+                "Espacios"
+              ],
+              "summary": "Crear espacio",
+              "operationId": "crear_espacio_espacios_post",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/EspacioCreateDTO"
+                    },
+                    "example": {
+                      "nombre": "Sala Norte",
+                      "tipo": "sala_reunion",
+                      "capacidad": 8,
+                      "estado": "activo"
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EspacioResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "nombre": "Sala Norte",
+                        "tipo": "sala_reunion",
+                        "capacidad": 8,
+                        "estado": "activo"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Registra un espacio con nombre de 1 a 100 caracteres, capacidad positiva y tipo/estado permitidos. Devuelve 201 con UUID generado."
+            },
+            "get": {
+              "tags": [
+                "Espacios"
+              ],
+              "summary": "Listar espacios con filtros y paginación",
+              "operationId": "listar_espacios_espacios_get",
+              "parameters": [
+                {
+                  "name": "pagina",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Pagina"
+                  },
+                  "description": "Número de página, desde 1.",
+                  "example": 1
+                },
+                {
+                  "name": "limite",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 10,
+                    "title": "Limite"
+                  },
+                  "description": "Registros por página, entre 1 y 100.",
+                  "example": 10
+                },
+                {
+                  "name": "ordenar_por",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "enum": [
+                      "nombre",
+                      "capacidad",
+                      "tipo",
+                      "estado"
+                    ],
+                    "type": "string",
+                    "default": "nombre",
+                    "title": "Ordenar Por"
+                  },
+                  "description": "Atributo de espacio usado para ordenar; UUID desempata.",
+                  "example": "capacidad"
+                },
+                {
+                  "name": "direccion",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "enum": [
+                      "asc",
+                      "desc"
+                    ],
+                    "type": "string",
+                    "default": "asc",
+                    "title": "Direccion"
+                  },
+                  "description": "Sentido del orden: asc o desc.",
+                  "example": "desc"
+                },
+                {
+                  "name": "tipo",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/TipoEspacio"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Tipo"
+                  },
+                  "description": "Tipo de espacio requerido.",
+                  "example": "oficina"
+                },
+                {
+                  "name": "estado",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/EstadoEspacio"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Estado"
+                  },
+                  "description": "Estado permitido del recurso.",
+                  "example": "activo"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EspacioPaginaDTO"
+                      },
+                      "example": {
+                        "items": [
+                          {
+                            "id": "00000000-0000-4000-8000-000000000003",
+                            "nombre": "Sala Norte",
+                            "tipo": "sala_reunion",
+                            "capacidad": 8,
+                            "estado": "activo"
+                          }
+                        ],
+                        "total": 1,
+                        "pagina": 1,
+                        "limite": 10,
+                        "total_paginas": 1
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Filtra por tipo y estado. ordenar_por acepta nombre, capacidad, tipo o estado; direccion admite asc o desc. El UUID desempata el orden. pagina comienza en 1; limite admite 1 a 100. total y total_paginas corresponden al filtro, incluso si la página está vacía."
+            }
+          },
+          "/espacios/{espacio_id}": {
+            "get": {
+              "tags": [
+                "Espacios"
+              ],
+              "summary": "Obtener espacio por UUID",
+              "operationId": "obtener_espacio_espacios__espacio_id__get",
+              "parameters": [
+                {
+                  "name": "espacio_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Espacio Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EspacioResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "nombre": "Sala Norte",
+                        "tipo": "sala_reunion",
+                        "capacidad": 8,
+                        "estado": "activo"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Recupera un registro de espacios desde PostgreSQL. Devuelve 404 si el UUID válido no existe y 422 si su formato no es válido."
+            },
+            "put": {
+              "tags": [
+                "Espacios"
+              ],
+              "summary": "Actualizar espacio",
+              "operationId": "actualizar_espacio_espacios__espacio_id__put",
+              "parameters": [
+                {
+                  "name": "espacio_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Espacio Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/EspacioUpdateDTO"
+                    },
+                    "example": {
+                      "nombre": "Sala Norte",
+                      "tipo": "sala_reunion",
+                      "capacidad": 8,
+                      "estado": "activo"
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EspacioResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "nombre": "Sala Norte",
+                        "tipo": "sala_reunion",
+                        "capacidad": 8,
+                        "estado": "activo"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Reemplaza todos los atributos editables usando el esquema de entrada. Conserva el UUID. Un recurso inexistente produce 404; los campos inválidos producen 422. Se aplican las reglas de creación."
+            },
+            "delete": {
+              "tags": [
+                "Espacios"
+              ],
+              "summary": "Eliminar espacio",
+              "operationId": "eliminar_espacio_espacios__espacio_id__delete",
+              "parameters": [
+                {
+                  "name": "espacio_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Espacio Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "204": {
+                  "description": "Successful Response"
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Elimina el registro y devuelve 204 sin cuerpo. Si no existe devuelve 404. Las referencias existentes impiden borrar espacios y empresas (409); no se eliminan reservas en cascada."
+            }
+          },
+          "/empresas": {
+            "post": {
+              "tags": [
+                "Empresas"
+              ],
+              "summary": "Crear empresa",
+              "operationId": "crear_empresa_empresas_post",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/EmpresaCreateDTO"
+                    },
+                    "example": {
+                      "nombre": "Empresa Demo",
+                      "rut": "111111111",
+                      "contacto": "demo@example.test",
+                      "activa": true
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EmpresaResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "nombre": "Empresa Demo",
+                        "rut": "111111111",
+                        "contacto": "demo@example.test",
+                        "activa": true
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Valida el dígito verificador del RUT y normaliza puntuación. Devuelve 201; RUT inválido produce 400 y RUT duplicado 409."
+            },
+            "get": {
+              "tags": [
+                "Empresas"
+              ],
+              "summary": "Listar empresas con filtros y paginación",
+              "operationId": "listar_empresas_empresas_get",
+              "parameters": [
+                {
+                  "name": "pagina",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Pagina"
+                  },
+                  "description": "Número de página, desde 1.",
+                  "example": 1
+                },
+                {
+                  "name": "limite",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 10,
+                    "title": "Limite"
+                  },
+                  "description": "Registros por página, entre 1 y 100.",
+                  "example": 10
+                },
+                {
+                  "name": "activa",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Activa"
+                  },
+                  "description": "Conservar registros activos o inactivos.",
+                  "example": true
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EmpresaPaginaDTO"
+                      },
+                      "example": {
+                        "items": [
+                          {
+                            "id": "00000000-0000-4000-8000-000000000003",
+                            "nombre": "Empresa Demo",
+                            "rut": "111111111",
+                            "contacto": "demo@example.test",
+                            "activa": true
+                          }
+                        ],
+                        "total": 1,
+                        "pagina": 1,
+                        "limite": 10,
+                        "total_paginas": 1
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Filtra por activa; se ordena por nombre y UUID. pagina comienza en 1; limite admite 1 a 100. total y total_paginas corresponden al filtro, incluso si la página está vacía."
+            }
+          },
+          "/empresas/{empresa_id}": {
+            "get": {
+              "tags": [
+                "Empresas"
+              ],
+              "summary": "Obtener empresa por UUID",
+              "operationId": "obtener_empresa_empresas__empresa_id__get",
+              "parameters": [
+                {
+                  "name": "empresa_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Empresa Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EmpresaResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "nombre": "Empresa Demo",
+                        "rut": "111111111",
+                        "contacto": "demo@example.test",
+                        "activa": true
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Recupera un registro de empresas desde PostgreSQL. Devuelve 404 si el UUID válido no existe y 422 si su formato no es válido."
+            },
+            "put": {
+              "tags": [
+                "Empresas"
+              ],
+              "summary": "Actualizar empresa",
+              "operationId": "actualizar_empresa_empresas__empresa_id__put",
+              "parameters": [
+                {
+                  "name": "empresa_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Empresa Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/EmpresaUpdateDTO"
+                    },
+                    "example": {
+                      "nombre": "Empresa Demo",
+                      "rut": "111111111",
+                      "contacto": "demo@example.test",
+                      "activa": true
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/EmpresaResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "nombre": "Empresa Demo",
+                        "rut": "111111111",
+                        "contacto": "demo@example.test",
+                        "activa": true
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Reemplaza todos los atributos editables usando el esquema de entrada. Conserva el UUID. Un recurso inexistente produce 404; los campos inválidos producen 422. Se aplican las reglas de creación."
+            },
+            "delete": {
+              "tags": [
+                "Empresas"
+              ],
+              "summary": "Eliminar empresa",
+              "operationId": "eliminar_empresa_empresas__empresa_id__delete",
+              "parameters": [
+                {
+                  "name": "empresa_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Empresa Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "204": {
+                  "description": "Successful Response"
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Elimina el registro y devuelve 204 sin cuerpo. Si no existe devuelve 404. Las referencias existentes impiden borrar espacios y empresas (409); no se eliminan reservas en cascada."
+            }
+          },
+          "/disponibilidades": {
+            "post": {
+              "tags": [
+                "Disponibilidades"
+              ],
+              "summary": "Crear disponibilidad",
+              "operationId": "crear_disponibilidad_disponibilidades_post",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/DisponibilidadCreateDTO"
+                    },
+                    "example": {
+                      "espacio_id": "00000000-0000-4000-8000-000000000001",
+                      "dia_semana": 0,
+                      "hora_apertura": "09:00:00",
+                      "hora_cierre": "18:00:00",
+                      "activa": true
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DisponibilidadResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "espacio_id": "00000000-0000-4000-8000-000000000001",
+                        "dia_semana": 0,
+                        "hora_apertura": "09:00:00",
+                        "hora_cierre": "18:00:00",
+                        "activa": true
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Define un horario semanal UTC para un espacio existente. Día entre 0 y 6; cierre posterior a apertura. Referencia inexistente: 404; horario incoherente: 400. Los UUID de los ejemplos son ilustrativos: obtener valores reales con GET /espacios y GET /empresas. La secuencia ejecutable tests_manual/run_checks.py crea sus referencias y calcula fechas futuras automáticamente."
+            },
+            "get": {
+              "tags": [
+                "Disponibilidades"
+              ],
+              "summary": "Listar disponibilidades con filtros y paginación",
+              "operationId": "listar_disponibilidades_disponibilidades_get",
+              "parameters": [
+                {
+                  "name": "pagina",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Pagina"
+                  },
+                  "description": "Número de página, desde 1.",
+                  "example": 1
+                },
+                {
+                  "name": "limite",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 10,
+                    "title": "Limite"
+                  },
+                  "description": "Registros por página, entre 1 y 100.",
+                  "example": 10
+                },
+                {
+                  "name": "espacio_id",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Espacio Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                },
+                {
+                  "name": "dia_semana",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "maximum": 6,
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Dia Semana"
+                  },
+                  "description": "Día UTC: lunes 0 a domingo 6.",
+                  "example": 0
+                },
+                {
+                  "name": "activa",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Activa"
+                  },
+                  "description": "Conservar registros activos o inactivos.",
+                  "example": true
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DisponibilidadPaginaDTO"
+                      },
+                      "example": {
+                        "items": [
+                          {
+                            "id": "00000000-0000-4000-8000-000000000003",
+                            "espacio_id": "00000000-0000-4000-8000-000000000001",
+                            "dia_semana": 0,
+                            "hora_apertura": "09:00:00",
+                            "hora_cierre": "18:00:00",
+                            "activa": true
+                          }
+                        ],
+                        "total": 1,
+                        "pagina": 1,
+                        "limite": 10,
+                        "total_paginas": 1
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Filtra por espacio_id, dia_semana y activa; se ordena por día, apertura y UUID. pagina comienza en 1; limite admite 1 a 100. total y total_paginas corresponden al filtro, incluso si la página está vacía."
+            }
+          },
+          "/disponibilidades/{disponibilidad_id}": {
+            "get": {
+              "tags": [
+                "Disponibilidades"
+              ],
+              "summary": "Obtener disponibilidad por UUID",
+              "operationId": "obtener_disponibilidad_disponibilidades__disponibilidad_id__get",
+              "parameters": [
+                {
+                  "name": "disponibilidad_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Disponibilidad Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DisponibilidadResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "espacio_id": "00000000-0000-4000-8000-000000000001",
+                        "dia_semana": 0,
+                        "hora_apertura": "09:00:00",
+                        "hora_cierre": "18:00:00",
+                        "activa": true
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Recupera un registro de disponibilidades desde PostgreSQL. Devuelve 404 si el UUID válido no existe y 422 si su formato no es válido."
+            },
+            "put": {
+              "tags": [
+                "Disponibilidades"
+              ],
+              "summary": "Actualizar disponibilidad",
+              "operationId": "actualizar_disponibilidad_disponibilidades__disponibilidad_id__put",
+              "parameters": [
+                {
+                  "name": "disponibilidad_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Disponibilidad Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/DisponibilidadUpdateDTO"
+                    },
+                    "example": {
+                      "espacio_id": "00000000-0000-4000-8000-000000000001",
+                      "dia_semana": 0,
+                      "hora_apertura": "09:00:00",
+                      "hora_cierre": "18:00:00",
+                      "activa": true
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/DisponibilidadResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "espacio_id": "00000000-0000-4000-8000-000000000001",
+                        "dia_semana": 0,
+                        "hora_apertura": "09:00:00",
+                        "hora_cierre": "18:00:00",
+                        "activa": true
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Reemplaza todos los atributos editables usando el esquema de entrada. Conserva el UUID. Un recurso inexistente produce 404; los campos inválidos producen 422. Se aplican las reglas de creación. Los UUID de los ejemplos son ilustrativos: obtener valores reales con GET /espacios y GET /empresas. La secuencia ejecutable tests_manual/run_checks.py crea sus referencias y calcula fechas futuras automáticamente."
+            },
+            "delete": {
+              "tags": [
+                "Disponibilidades"
+              ],
+              "summary": "Eliminar disponibilidad",
+              "operationId": "eliminar_disponibilidad_disponibilidades__disponibilidad_id__delete",
+              "parameters": [
+                {
+                  "name": "disponibilidad_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Disponibilidad Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "204": {
+                  "description": "Successful Response"
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Elimina el registro y devuelve 204 sin cuerpo. Si no existe devuelve 404. Las referencias existentes impiden borrar espacios y empresas (409); no se eliminan reservas en cascada."
+            }
+          },
+          "/reservas": {
+            "post": {
+              "tags": [
+                "Reservas"
+              ],
+              "summary": "Crear reserva",
+              "operationId": "crear_reserva_reservas_post",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ReservaCreateDTO"
+                    },
+                    "example": {
+                      "espacio_id": "00000000-0000-4000-8000-000000000001",
+                      "empresa_id": "00000000-0000-4000-8000-000000000002",
+                      "fecha_inicio": "2035-01-08T10:00:00Z",
+                      "fecha_fin": "2035-01-08T11:00:00Z"
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ReservaResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "espacio_id": "00000000-0000-4000-8000-000000000001",
+                        "empresa_id": "00000000-0000-4000-8000-000000000002",
+                        "fecha_inicio": "2035-01-08T10:00:00Z",
+                        "fecha_fin": "2035-01-08T11:00:00Z",
+                        "estado": "confirmada"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Requiere empresa y espacio activos, fechas con zona horaria y duración mínima de 30 minutos, dentro del mismo día y horario disponible UTC. Referencias ausentes: 404; regla incumplida: 400; superposición de empresa o espacio: 409. Los UUID de los ejemplos son ilustrativos: obtener valores reales con GET /espacios y GET /empresas. La secuencia ejecutable tests_manual/run_checks.py crea sus referencias y calcula fechas futuras automáticamente."
+            },
+            "get": {
+              "tags": [
+                "Reservas"
+              ],
+              "summary": "Listar reservas con filtros y paginación",
+              "operationId": "listar_reservas_reservas_get",
+              "parameters": [
+                {
+                  "name": "pagina",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "title": "Pagina"
+                  },
+                  "description": "Número de página, desde 1.",
+                  "example": 1
+                },
+                {
+                  "name": "limite",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "default": 10,
+                    "title": "Limite"
+                  },
+                  "description": "Registros por página, entre 1 y 100.",
+                  "example": 10
+                },
+                {
+                  "name": "espacio_id",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Espacio Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                },
+                {
+                  "name": "empresa_id",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Empresa Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                },
+                {
+                  "name": "estado",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/EstadoReserva"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Estado"
+                  },
+                  "description": "Estado permitido del recurso.",
+                  "example": "confirmada"
+                },
+                {
+                  "name": "desde",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Desde"
+                  },
+                  "description": "Inicio de reserva mayor o igual a esta fecha con zona horaria.",
+                  "example": "2035-01-08T00:00:00Z"
+                },
+                {
+                  "name": "hasta",
+                  "in": "query",
+                  "required": false,
+                  "schema": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "title": "Hasta"
+                  },
+                  "description": "Inicio de reserva menor o igual a esta fecha con zona horaria.",
+                  "example": "2035-01-09T00:00:00Z"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ReservaPaginaDTO"
+                      },
+                      "example": {
+                        "items": [
+                          {
+                            "id": "00000000-0000-4000-8000-000000000003",
+                            "espacio_id": "00000000-0000-4000-8000-000000000001",
+                            "empresa_id": "00000000-0000-4000-8000-000000000002",
+                            "fecha_inicio": "2035-01-08T10:00:00Z",
+                            "fecha_fin": "2035-01-08T11:00:00Z",
+                            "estado": "confirmada"
+                          }
+                        ],
+                        "total": 1,
+                        "pagina": 1,
+                        "limite": 10,
+                        "total_paginas": 1
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Filtra por espacio_id, empresa_id, estado, desde y hasta (inicio inclusivo con zona horaria); se ordena por inicio y UUID. pagina comienza en 1; limite admite 1 a 100. total y total_paginas corresponden al filtro, incluso si la página está vacía."
+            }
+          },
+          "/reservas/{reserva_id}": {
+            "get": {
+              "tags": [
+                "Reservas"
+              ],
+              "summary": "Obtener reserva por UUID",
+              "operationId": "obtener_reserva_reservas__reserva_id__get",
+              "parameters": [
+                {
+                  "name": "reserva_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Reserva Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ReservaResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "espacio_id": "00000000-0000-4000-8000-000000000001",
+                        "empresa_id": "00000000-0000-4000-8000-000000000002",
+                        "fecha_inicio": "2035-01-08T10:00:00Z",
+                        "fecha_fin": "2035-01-08T11:00:00Z",
+                        "estado": "confirmada"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Recupera un registro de reservas desde PostgreSQL. Devuelve 404 si el UUID válido no existe y 422 si su formato no es válido."
+            }
+          },
+          "/reservas/{reserva_id}/cancelar": {
+            "post": {
+              "tags": [
+                "Reservas"
+              ],
+              "summary": "Cancelar una reserva futura",
+              "operationId": "cancelar_reserva_reservas__reserva_id__cancelar_post",
+              "parameters": [
+                {
+                  "name": "reserva_id",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                    "title": "Reserva Id"
+                  },
+                  "description": "UUID de un recurso existente; obtenerlo del GET de su colección.",
+                  "example": "00000000-0000-4000-8000-000000000001"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful Response",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ReservaResponseDTO"
+                      },
+                      "example": {
+                        "id": "00000000-0000-4000-8000-000000000003",
+                        "espacio_id": "00000000-0000-4000-8000-000000000001",
+                        "empresa_id": "00000000-0000-4000-8000-000000000002",
+                        "fecha_inicio": "2035-01-08T10:00:00Z",
+                        "fecha_fin": "2035-01-08T11:00:00Z",
+                        "estado": "cancelada"
+                      }
+                    }
+                  }
+                },
+                "422": {
+                  "description": "Entrada inválida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "VALIDATION_ERROR",
+                          "message": "Entrada inválida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Regla de negocio incumplida",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "BUSINESS_RULE_VIOLATION",
+                          "message": "Regla de negocio incumplida",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Recurso inexistente",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "RESOURCE_NOT_FOUND",
+                          "message": "Recurso inexistente",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "409": {
+                  "description": "Conflicto de estado o referencias",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ErrorResponse"
+                      },
+                      "example": {
+                        "error": {
+                          "code": "CONFLICT",
+                          "message": "Conflicto de estado o referencias",
+                          "details": []
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "description": "Conserva el registro y cambia su estado a cancelada. Devuelve 404 si no existe, 409 si ya fue cancelada y 400 si ya comenzó. Los UUID de los ejemplos son ilustrativos: obtener valores reales con GET /espacios y GET /empresas. La secuencia ejecutable tests_manual/run_checks.py crea sus referencias y calcula fechas futuras automáticamente."
+            }
+          }
+        },
+        "components": {
+          "schemas": {
+            "DisponibilidadCreateDTO": {
+              "properties": {
+                "espacio_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Espacio Id"
+                },
+                "dia_semana": {
+                  "type": "integer",
+                  "maximum": 6.0,
+                  "minimum": 0.0,
+                  "title": "Dia Semana"
+                },
+                "hora_apertura": {
+                  "type": "string",
+                  "format": "time",
+                  "title": "Hora Apertura"
+                },
+                "hora_cierre": {
+                  "type": "string",
+                  "format": "time",
+                  "title": "Hora Cierre"
+                },
+                "activa": {
+                  "type": "boolean",
+                  "title": "Activa",
+                  "default": true
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "espacio_id",
+                "dia_semana",
+                "hora_apertura",
+                "hora_cierre"
+              ],
+              "title": "DisponibilidadCreateDTO"
+            },
+            "DisponibilidadPaginaDTO": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "$ref": "#/components/schemas/DisponibilidadResponseDTO"
+                  },
+                  "type": "array",
+                  "title": "Items"
+                },
+                "total": {
+                  "type": "integer",
+                  "title": "Total"
+                },
+                "pagina": {
+                  "type": "integer",
+                  "title": "Pagina"
+                },
+                "limite": {
+                  "type": "integer",
+                  "title": "Limite"
+                },
+                "total_paginas": {
+                  "type": "integer",
+                  "title": "Total Paginas"
+                }
+              },
+              "type": "object",
+              "required": [
+                "items",
+                "total",
+                "pagina",
+                "limite",
+                "total_paginas"
+              ],
+              "title": "DisponibilidadPaginaDTO"
+            },
+            "DisponibilidadResponseDTO": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Id"
+                },
+                "espacio_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Espacio Id"
+                },
+                "dia_semana": {
+                  "type": "integer",
+                  "title": "Dia Semana"
+                },
+                "hora_apertura": {
+                  "type": "string",
+                  "format": "time",
+                  "title": "Hora Apertura"
+                },
+                "hora_cierre": {
+                  "type": "string",
+                  "format": "time",
+                  "title": "Hora Cierre"
+                },
+                "activa": {
+                  "type": "boolean",
+                  "title": "Activa"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "espacio_id",
+                "dia_semana",
+                "hora_apertura",
+                "hora_cierre",
+                "activa"
+              ],
+              "title": "DisponibilidadResponseDTO"
+            },
+            "DisponibilidadUpdateDTO": {
+              "properties": {
+                "espacio_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Espacio Id"
+                },
+                "dia_semana": {
+                  "type": "integer",
+                  "maximum": 6.0,
+                  "minimum": 0.0,
+                  "title": "Dia Semana"
+                },
+                "hora_apertura": {
+                  "type": "string",
+                  "format": "time",
+                  "title": "Hora Apertura"
+                },
+                "hora_cierre": {
+                  "type": "string",
+                  "format": "time",
+                  "title": "Hora Cierre"
+                },
+                "activa": {
+                  "type": "boolean",
+                  "title": "Activa",
+                  "default": true
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "espacio_id",
+                "dia_semana",
+                "hora_apertura",
+                "hora_cierre"
+              ],
+              "title": "DisponibilidadUpdateDTO",
+              "description": "Para actualizar se requieren los campos de disponibilidad."
+            },
+            "EmpresaCreateDTO": {
+              "properties": {
+                "nombre": {
+                  "type": "string",
+                  "maxLength": 150,
+                  "minLength": 1,
+                  "title": "Nombre"
+                },
+                "rut": {
+                  "type": "string",
+                  "maxLength": 12,
+                  "minLength": 8,
+                  "title": "Rut"
+                },
+                "contacto": {
+                  "type": "string",
+                  "maxLength": 150,
+                  "minLength": 1,
+                  "title": "Contacto"
+                },
+                "activa": {
+                  "type": "boolean",
+                  "title": "Activa",
+                  "default": true
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "nombre",
+                "rut",
+                "contacto"
+              ],
+              "title": "EmpresaCreateDTO"
+            },
+            "EmpresaPaginaDTO": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "$ref": "#/components/schemas/EmpresaResponseDTO"
+                  },
+                  "type": "array",
+                  "title": "Items"
+                },
+                "total": {
+                  "type": "integer",
+                  "title": "Total"
+                },
+                "pagina": {
+                  "type": "integer",
+                  "title": "Pagina"
+                },
+                "limite": {
+                  "type": "integer",
+                  "title": "Limite"
+                },
+                "total_paginas": {
+                  "type": "integer",
+                  "title": "Total Paginas"
+                }
+              },
+              "type": "object",
+              "required": [
+                "items",
+                "total",
+                "pagina",
+                "limite",
+                "total_paginas"
+              ],
+              "title": "EmpresaPaginaDTO"
+            },
+            "EmpresaResponseDTO": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Id"
+                },
+                "nombre": {
+                  "type": "string",
+                  "title": "Nombre"
+                },
+                "rut": {
+                  "type": "string",
+                  "title": "Rut"
+                },
+                "contacto": {
+                  "type": "string",
+                  "title": "Contacto"
+                },
+                "activa": {
+                  "type": "boolean",
+                  "title": "Activa"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "nombre",
+                "rut",
+                "contacto",
+                "activa"
+              ],
+              "title": "EmpresaResponseDTO"
+            },
+            "EmpresaUpdateDTO": {
+              "properties": {
+                "nombre": {
+                  "type": "string",
+                  "maxLength": 150,
+                  "minLength": 1,
+                  "title": "Nombre"
+                },
+                "rut": {
+                  "type": "string",
+                  "maxLength": 12,
+                  "minLength": 8,
+                  "title": "Rut"
+                },
+                "contacto": {
+                  "type": "string",
+                  "maxLength": 150,
+                  "minLength": 1,
+                  "title": "Contacto"
+                },
+                "activa": {
+                  "type": "boolean",
+                  "title": "Activa",
+                  "default": true
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "nombre",
+                "rut",
+                "contacto"
+              ],
+              "title": "EmpresaUpdateDTO",
+              "description": "Para actualizar se requieren los campos de la empresa."
+            },
+            "EspacioCreateDTO": {
+              "properties": {
+                "nombre": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "title": "Nombre"
+                },
+                "tipo": {
+                  "$ref": "#/components/schemas/TipoEspacio"
+                },
+                "capacidad": {
+                  "type": "integer",
+                  "minimum": 1.0,
+                  "title": "Capacidad"
+                },
+                "estado": {
+                  "$ref": "#/components/schemas/EstadoEspacio",
+                  "default": "activo"
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "nombre",
+                "tipo",
+                "capacidad"
+              ],
+              "title": "EspacioCreateDTO"
+            },
+            "EspacioPaginaDTO": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "$ref": "#/components/schemas/EspacioResponseDTO"
+                  },
+                  "type": "array",
+                  "title": "Items"
+                },
+                "total": {
+                  "type": "integer",
+                  "title": "Total"
+                },
+                "pagina": {
+                  "type": "integer",
+                  "title": "Pagina"
+                },
+                "limite": {
+                  "type": "integer",
+                  "title": "Limite"
+                },
+                "total_paginas": {
+                  "type": "integer",
+                  "title": "Total Paginas"
+                }
+              },
+              "type": "object",
+              "required": [
+                "items",
+                "total",
+                "pagina",
+                "limite",
+                "total_paginas"
+              ],
+              "title": "EspacioPaginaDTO"
+            },
+            "EspacioResponseDTO": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Id"
+                },
+                "nombre": {
+                  "type": "string",
+                  "title": "Nombre"
+                },
+                "tipo": {
+                  "$ref": "#/components/schemas/TipoEspacio"
+                },
+                "capacidad": {
+                  "type": "integer",
+                  "title": "Capacidad"
+                },
+                "estado": {
+                  "$ref": "#/components/schemas/EstadoEspacio"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "nombre",
+                "tipo",
+                "capacidad",
+                "estado"
+              ],
+              "title": "EspacioResponseDTO"
+            },
+            "EspacioUpdateDTO": {
+              "properties": {
+                "nombre": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "title": "Nombre"
+                },
+                "tipo": {
+                  "$ref": "#/components/schemas/TipoEspacio"
+                },
+                "capacidad": {
+                  "type": "integer",
+                  "minimum": 1.0,
+                  "title": "Capacidad"
+                },
+                "estado": {
+                  "$ref": "#/components/schemas/EstadoEspacio",
+                  "default": "activo"
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "nombre",
+                "tipo",
+                "capacidad"
+              ],
+              "title": "EspacioUpdateDTO",
+              "description": "Para actualizar se requieren los campos del espacio."
+            },
+            "EstadoEspacio": {
+              "type": "string",
+              "enum": [
+                "activo",
+                "inactivo",
+                "mantenimiento"
+              ],
+              "title": "EstadoEspacio"
+            },
+            "EstadoReserva": {
+              "type": "string",
+              "enum": [
+                "pendiente",
+                "confirmada",
+                "cancelada"
+              ],
+              "title": "EstadoReserva"
+            },
+            "HTTPValidationError": {
+              "properties": {
+                "detail": {
+                  "items": {
+                    "$ref": "#/components/schemas/ValidationError"
+                  },
+                  "type": "array",
+                  "title": "Detail"
+                }
+              },
+              "type": "object",
+              "title": "HTTPValidationError"
+            },
+            "ReservaCreateDTO": {
+              "properties": {
+                "espacio_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Espacio Id"
+                },
+                "empresa_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Empresa Id"
+                },
+                "fecha_inicio": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Fecha Inicio"
+                },
+                "fecha_fin": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Fecha Fin"
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "espacio_id",
+                "empresa_id",
+                "fecha_inicio",
+                "fecha_fin"
+              ],
+              "title": "ReservaCreateDTO"
+            },
+            "ReservaPaginaDTO": {
+              "properties": {
+                "items": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReservaResponseDTO"
+                  },
+                  "type": "array",
+                  "title": "Items"
+                },
+                "total": {
+                  "type": "integer",
+                  "title": "Total"
+                },
+                "pagina": {
+                  "type": "integer",
+                  "title": "Pagina"
+                },
+                "limite": {
+                  "type": "integer",
+                  "title": "Limite"
+                },
+                "total_paginas": {
+                  "type": "integer",
+                  "title": "Total Paginas"
+                }
+              },
+              "type": "object",
+              "required": [
+                "items",
+                "total",
+                "pagina",
+                "limite",
+                "total_paginas"
+              ],
+              "title": "ReservaPaginaDTO"
+            },
+            "ReservaResponseDTO": {
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Id"
+                },
+                "espacio_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Espacio Id"
+                },
+                "empresa_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "title": "Empresa Id"
+                },
+                "fecha_inicio": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Fecha Inicio"
+                },
+                "fecha_fin": {
+                  "type": "string",
+                  "format": "date-time",
+                  "title": "Fecha Fin"
+                },
+                "estado": {
+                  "$ref": "#/components/schemas/EstadoReserva"
+                }
+              },
+              "type": "object",
+              "required": [
+                "id",
+                "espacio_id",
+                "empresa_id",
+                "fecha_inicio",
+                "fecha_fin",
+                "estado"
+              ],
+              "title": "ReservaResponseDTO"
+            },
+            "TipoEspacio": {
+              "type": "string",
+              "enum": [
+                "sala_reunion",
+                "escritorio",
+                "oficina"
+              ],
+              "title": "TipoEspacio"
+            },
+            "ValidationError": {
+              "properties": {
+                "loc": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "title": "Location"
+                },
+                "msg": {
+                  "type": "string",
+                  "title": "Message"
+                },
+                "type": {
+                  "type": "string",
+                  "title": "Error Type"
+                },
+                "input": {
+                  "title": "Input"
+                },
+                "ctx": {
+                  "type": "object",
+                  "title": "Context"
+                }
+              },
+              "type": "object",
+              "required": [
+                "loc",
+                "msg",
+                "type"
+              ],
+              "title": "ValidationError"
+            },
+            "ErrorDetail": {
+              "properties": {
+                "code": {
+                  "title": "Code",
+                  "type": "string"
+                },
+                "message": {
+                  "title": "Message",
+                  "type": "string"
+                },
+                "details": {
+                  "items": {},
+                  "title": "Details",
+                  "type": "array"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "title": "ErrorDetail",
+              "type": "object"
+            },
+            "ErrorResponse": {
+              "properties": {
+                "error": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              },
+              "required": [
+                "error"
+              ],
+              "title": "ErrorResponse",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "nombre": "Escritorio compartido 1",
+            "tipo": "escritorio",
+            "capacidad": 1,
+            "estado": "activo"
+          },
+          {
+            "id": "e7f916a7-05db-4e36-bb98-c4ab6498e276",
+            "nombre": "Escritorio compartido 2",
+            "tipo": "escritorio",
+            "capacidad": 1,
+            "estado": "mantenimiento"
+          },
+          {
+            "id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "nombre": "Oficina privada 1",
+            "tipo": "oficina",
+            "capacidad": 4,
+            "estado": "activo"
+          },
+          {
+            "id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "nombre": "Sala de reuniones A",
+            "tipo": "sala_reunion",
+            "capacidad": 10,
+            "estado": "activo"
+          },
+          {
+            "id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "nombre": "Sala de reuniones B",
+            "tipo": "sala_reunion",
+            "capacidad": 6,
+            "estado": "activo"
+          }
+        ],
+        "total": 5,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/empresas",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "d0695cca-20b1-43af-9963-4a4fd392700f",
+            "nombre": "Empresa Dos",
+            "rut": "774567895",
+            "contacto": "contacto@empresados.cl",
+            "activa": true
+          },
+          {
+            "id": "6942c8ee-542d-4755-ade9-d5583f41316b",
+            "nombre": "Empresa Tres",
+            "rut": "765432103",
+            "contacto": "contacto@empresatres.cl",
+            "activa": false
+          },
+          {
+            "id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "nombre": "Empresa Uno",
+            "rut": "761234560",
+            "contacto": "contacto@empresauno.cl",
+            "activa": true
+          }
+        ],
+        "total": 3,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/disponibilidades",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "20a36ffd-c4a7-4268-9663-72636c3284d1",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "69421779-549a-4dc5-ad6a-70b9692c90f5",
+            "espacio_id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "a72464ea-b05d-4328-b832-2da07548b6df",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "aa4706ce-a4a2-4da3-945a-87e385852755",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "8146f157-a4c6-4991-bd60-b42da5cb024c",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "9c291a4e-d976-4293-a1eb-4e8393d74368",
+            "espacio_id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "bddcd232-2a14-4fbc-94b0-c5dee2426b69",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "f981d63a-e2ec-4799-8061-b3e387853031",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "5b3c0d0b-18e8-4aad-9504-10f75dabba8e",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 2,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "65119680-b992-46b9-a6e3-3ba32a3ccad9",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 2,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          }
+        ],
+        "total": 20,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 2
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "ce4a1499-4f91-4295-9975-5a527af45269",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "empresa_id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "fecha_inicio": "2026-10-26T10:00:00Z",
+            "fecha_fin": "2026-10-26T11:00:00Z",
+            "estado": "confirmada"
+          },
+          {
+            "id": "9c08cefe-8852-4fc5-939e-70c51171a9dc",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "empresa_id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "fecha_inicio": "2026-10-26T11:00:00Z",
+            "fecha_fin": "2026-10-26T12:00:00Z",
+            "estado": "confirmada"
+          }
+        ],
+        "total": 2,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "nombre": "Escritorio compartido 1",
+            "tipo": "escritorio",
+            "capacidad": 1,
+            "estado": "activo"
+          },
+          {
+            "id": "e7f916a7-05db-4e36-bb98-c4ab6498e276",
+            "nombre": "Escritorio compartido 2",
+            "tipo": "escritorio",
+            "capacidad": 1,
+            "estado": "mantenimiento"
+          },
+          {
+            "id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "nombre": "Oficina privada 1",
+            "tipo": "oficina",
+            "capacidad": 4,
+            "estado": "activo"
+          },
+          {
+            "id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "nombre": "Sala de reuniones A",
+            "tipo": "sala_reunion",
+            "capacidad": 10,
+            "estado": "activo"
+          },
+          {
+            "id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "nombre": "Sala de reuniones B",
+            "tipo": "sala_reunion",
+            "capacidad": 6,
+            "estado": "activo"
+          }
+        ],
+        "total": 5,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/empresas",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "d0695cca-20b1-43af-9963-4a4fd392700f",
+            "nombre": "Empresa Dos",
+            "rut": "774567895",
+            "contacto": "contacto@empresados.cl",
+            "activa": true
+          },
+          {
+            "id": "6942c8ee-542d-4755-ade9-d5583f41316b",
+            "nombre": "Empresa Tres",
+            "rut": "765432103",
+            "contacto": "contacto@empresatres.cl",
+            "activa": false
+          },
+          {
+            "id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "nombre": "Empresa Uno",
+            "rut": "761234560",
+            "contacto": "contacto@empresauno.cl",
+            "activa": true
+          }
+        ],
+        "total": 3,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/disponibilidades",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "20a36ffd-c4a7-4268-9663-72636c3284d1",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "69421779-549a-4dc5-ad6a-70b9692c90f5",
+            "espacio_id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "a72464ea-b05d-4328-b832-2da07548b6df",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "aa4706ce-a4a2-4da3-945a-87e385852755",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "8146f157-a4c6-4991-bd60-b42da5cb024c",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "9c291a4e-d976-4293-a1eb-4e8393d74368",
+            "espacio_id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "bddcd232-2a14-4fbc-94b0-c5dee2426b69",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "f981d63a-e2ec-4799-8061-b3e387853031",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "5b3c0d0b-18e8-4aad-9504-10f75dabba8e",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 2,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "65119680-b992-46b9-a6e3-3ba32a3ccad9",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 2,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          }
+        ],
+        "total": 20,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 2
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "ce4a1499-4f91-4295-9975-5a527af45269",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "empresa_id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "fecha_inicio": "2026-10-26T10:00:00Z",
+            "fecha_fin": "2026-10-26T11:00:00Z",
+            "estado": "confirmada"
+          },
+          {
+            "id": "9c08cefe-8852-4fc5-939e-70c51171a9dc",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "empresa_id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "fecha_inicio": "2026-10-26T11:00:00Z",
+            "fecha_fin": "2026-10-26T12:00:00Z",
+            "estado": "confirmada"
+          }
+        ],
+        "total": 2,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios/00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "El espacio no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/empresas/00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La empresa no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/disponibilidades/00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La disponibilidad no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas/00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La reserva no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/espacios",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      },
+      "expected": 201,
+      "obtained": 201,
+      "response": {
+        "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 7,
+        "estado": "activo"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios/42c0125d-4649-456c-b1cd-8a439ea5f904",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 7,
+        "estado": "activo"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/espacios/42c0125d-4649-456c-b1cd-8a439ea5f904",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/espacios",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 0,
+        "estado": "activo"
+      },
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "body",
+                "capacidad"
+              ],
+              "message": "Input should be greater than or equal to 1",
+              "type": "greater_than_equal"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/espacios",
+      "input": {
+        "nombre": "",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      },
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "body",
+                "nombre"
+              ],
+              "message": "String should have at least 1 character",
+              "type": "string_too_short"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/espacios",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "desconocido"
+      },
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "body",
+                "estado"
+              ],
+              "message": "Input should be 'activo', 'inactivo' or 'mantenimiento'",
+              "type": "enum"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/espacios",
+      "input": {
+        "nombre": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      },
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "body",
+                "nombre"
+              ],
+              "message": "String should have at most 100 characters",
+              "type": "string_too_long"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?limite=0",
+      "input": null,
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "query",
+                "limite"
+              ],
+              "message": "Input should be greater than or equal to 1",
+              "type": "greater_than_equal"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?limite=101",
+      "input": null,
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "query",
+                "limite"
+              ],
+              "message": "Input should be less than or equal to 100",
+              "type": "less_than_equal"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?pagina=0",
+      "input": null,
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "query",
+                "pagina"
+              ],
+              "message": "Input should be greater than or equal to 1",
+              "type": "greater_than_equal"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?direccion=otro",
+      "input": null,
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "query",
+                "direccion"
+              ],
+              "message": "Input should be 'asc' or 'desc'",
+              "type": "literal_error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?ordenar_por=sql",
+      "input": null,
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "query",
+                "ordenar_por"
+              ],
+              "message": "Input should be 'nombre', 'capacidad', 'tipo' or 'estado'",
+              "type": "literal_error"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?tipo=oficina&ordenar_por=capacidad&direccion=desc&limite=1&pagina=1",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+            "nombre": "Prueba aislada",
+            "tipo": "oficina",
+            "capacidad": 9,
+            "estado": "activo"
+          }
+        ],
+        "total": 2,
+        "pagina": 1,
+        "limite": 1,
+        "total_paginas": 2
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?tipo=oficina&ordenar_por=capacidad&direccion=desc&limite=1&pagina=2",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "nombre": "Oficina privada 1",
+            "tipo": "oficina",
+            "capacidad": 4,
+            "estado": "activo"
+          }
+        ],
+        "total": 2,
+        "pagina": 2,
+        "limite": 1,
+        "total_paginas": 2
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?tipo=oficina&pagina=999&limite=1",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [],
+        "total": 2,
+        "pagina": 999,
+        "limite": 1,
+        "total_paginas": 2
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios?tipo=oficina&ordenar_por=capacidad&direccion=asc&limite=100",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "nombre": "Oficina privada 1",
+            "tipo": "oficina",
+            "capacidad": 4,
+            "estado": "activo"
+          },
+          {
+            "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+            "nombre": "Prueba aislada",
+            "tipo": "oficina",
+            "capacidad": 9,
+            "estado": "activo"
+          }
+        ],
+        "total": 2,
+        "pagina": 1,
+        "limite": 100,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/empresas",
+      "input": {
+        "nombre": "Empresa actualizada",
+        "rut": "11111111-1",
+        "contacto": "test@example.test",
+        "activa": true
+      },
+      "expected": 201,
+      "obtained": 201,
+      "response": {
+        "id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "nombre": "Prueba empresa",
+        "rut": "111111111",
+        "contacto": "test@example.test",
+        "activa": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/empresas",
+      "input": {
+        "nombre": "Prueba empresa",
+        "rut": "11.111.111-1",
+        "contacto": "test@example.test",
+        "activa": true
+      },
+      "expected": 409,
+      "obtained": 409,
+      "response": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "Ya existe una empresa con ese RUT.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/empresas",
+      "input": {
+        "nombre": "Prueba empresa",
+        "rut": "11111111-2",
+        "contacto": "test@example.test",
+        "activa": true
+      },
+      "expected": 400,
+      "obtained": 400,
+      "response": {
+        "error": {
+          "code": "BUSINESS_RULE_VIOLATION",
+          "message": "El RUT no es válido",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/empresas/2abd3b5b-241a-4884-813c-c6242f16ccb7",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "nombre": "Prueba empresa",
+        "rut": "111111111",
+        "contacto": "test@example.test",
+        "activa": true
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/empresas/2abd3b5b-241a-4884-813c-c6242f16ccb7",
+      "input": {
+        "nombre": "Empresa actualizada",
+        "rut": "11111111-1",
+        "contacto": "test@example.test",
+        "activa": true
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "nombre": "Empresa actualizada",
+        "rut": "111111111",
+        "contacto": "test@example.test",
+        "activa": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/disponibilidades",
+      "input": {
+        "espacio_id": "00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "18:00:00",
+        "activa": true
+      },
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "El espacio no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/disponibilidades",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "08:00:00",
+        "activa": true
+      },
+      "expected": 400,
+      "obtained": 400,
+      "response": {
+        "error": {
+          "code": "BUSINESS_RULE_VIOLATION",
+          "message": "La hora de cierre debe ser posterior a la hora de apertura.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/disponibilidades",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "18:00:00",
+        "activa": true
+      },
+      "expected": 201,
+      "obtained": 201,
+      "response": {
+        "id": "72f663fb-eb9c-4df9-8ee9-671562693c84",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "18:00:00",
+        "activa": true
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/disponibilidades/72f663fb-eb9c-4df9-8ee9-671562693c84",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "72f663fb-eb9c-4df9-8ee9-671562693c84",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "18:00:00",
+        "activa": true
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/disponibilidades/72f663fb-eb9c-4df9-8ee9-671562693c84",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "18:00:00",
+        "activa": true
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "72f663fb-eb9c-4df9-8ee9-671562693c84",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "dia_semana": 6,
+        "hora_apertura": "09:00:00",
+        "hora_cierre": "18:00:00",
+        "activa": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00+00:00",
+        "fecha_fin": "2026-11-01T10:15:00+00:00"
+      },
+      "expected": 400,
+      "obtained": 400,
+      "response": {
+        "error": {
+          "code": "BUSINESS_RULE_VIOLATION",
+          "message": "La reserva debe durar al menos 30 minutos.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00",
+        "fecha_fin": "2026-11-01T11:00:00+00:00"
+      },
+      "expected": 422,
+      "obtained": 422,
+      "response": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Los datos no cumplen el esquema.",
+          "details": [
+            {
+              "field": [
+                "body",
+                "fecha_inicio"
+              ],
+              "message": "Input should have timezone info",
+              "type": "timezone_aware"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0",
+        "fecha_inicio": "2026-11-01T10:00:00+00:00",
+        "fecha_fin": "2026-11-01T11:00:00+00:00"
+      },
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La empresa no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/empresas/2abd3b5b-241a-4884-813c-c6242f16ccb7",
+      "input": {
+        "nombre": "Empresa actualizada",
+        "rut": "11111111-1",
+        "contacto": "test@example.test",
+        "activa": false
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "nombre": "Empresa actualizada",
+        "rut": "111111111",
+        "contacto": "test@example.test",
+        "activa": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00+00:00",
+        "fecha_fin": "2026-11-01T11:00:00+00:00"
+      },
+      "expected": 400,
+      "obtained": 400,
+      "response": {
+        "error": {
+          "code": "BUSINESS_RULE_VIOLATION",
+          "message": "La empresa no está activa.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/empresas/2abd3b5b-241a-4884-813c-c6242f16ccb7",
+      "input": {
+        "nombre": "Empresa actualizada",
+        "rut": "11111111-1",
+        "contacto": "test@example.test",
+        "activa": true
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "nombre": "Empresa actualizada",
+        "rut": "111111111",
+        "contacto": "test@example.test",
+        "activa": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T07:00:00+00:00",
+        "fecha_fin": "2026-11-01T08:00:00+00:00"
+      },
+      "expected": 400,
+      "obtained": 400,
+      "response": {
+        "error": {
+          "code": "BUSINESS_RULE_VIOLATION",
+          "message": "La reserva está fuera del horario disponible.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/espacios/42c0125d-4649-456c-b1cd-8a439ea5f904",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "mantenimiento"
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "mantenimiento"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00+00:00",
+        "fecha_fin": "2026-11-01T11:00:00+00:00"
+      },
+      "expected": 400,
+      "obtained": 400,
+      "response": {
+        "error": {
+          "code": "BUSINESS_RULE_VIOLATION",
+          "message": "El espacio no está activo.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/espacios/42c0125d-4649-456c-b1cd-8a439ea5f904",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      },
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00+00:00",
+        "fecha_fin": "2026-11-01T11:00:00+00:00"
+      },
+      "expected": 201,
+      "obtained": 201,
+      "response": {
+        "id": "fc47fc70-e481-4605-ab28-2bdd20a412f4",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00Z",
+        "fecha_fin": "2026-11-01T11:00:00Z",
+        "estado": "confirmada"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas/fc47fc70-e481-4605-ab28-2bdd20a412f4",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "fc47fc70-e481-4605-ab28-2bdd20a412f4",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00Z",
+        "fecha_fin": "2026-11-01T11:00:00Z",
+        "estado": "confirmada"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas",
+      "input": {
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00+00:00",
+        "fecha_fin": "2026-11-01T11:00:00+00:00"
+      },
+      "expected": 409,
+      "obtained": 409,
+      "response": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "El espacio ya tiene una reserva en ese horario.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas?empresa_id=2abd3b5b-241a-4884-813c-c6242f16ccb7&desde=2026-11-01T10:00:00Z&hasta=2026-11-01T12:00:00Z&limite=1",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "fc47fc70-e481-4605-ab28-2bdd20a412f4",
+            "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+            "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+            "fecha_inicio": "2026-11-01T10:00:00Z",
+            "fecha_fin": "2026-11-01T11:00:00Z",
+            "estado": "confirmada"
+          }
+        ],
+        "total": 1,
+        "pagina": 1,
+        "limite": 1,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/espacios/42c0125d-4649-456c-b1cd-8a439ea5f904",
+      "input": null,
+      "expected": 409,
+      "obtained": 409,
+      "response": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "La operación duplica datos o afecta recursos relacionados.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/empresas/2abd3b5b-241a-4884-813c-c6242f16ccb7",
+      "input": null,
+      "expected": 409,
+      "obtained": 409,
+      "response": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "La operación duplica datos o afecta recursos relacionados.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios/42c0125d-4649-456c-b1cd-8a439ea5f904",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas/fc47fc70-e481-4605-ab28-2bdd20a412f4",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "fc47fc70-e481-4605-ab28-2bdd20a412f4",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00Z",
+        "fecha_fin": "2026-11-01T11:00:00Z",
+        "estado": "confirmada"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/espacios",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "nombre": "Escritorio compartido 1",
+            "tipo": "escritorio",
+            "capacidad": 1,
+            "estado": "activo"
+          },
+          {
+            "id": "e7f916a7-05db-4e36-bb98-c4ab6498e276",
+            "nombre": "Escritorio compartido 2",
+            "tipo": "escritorio",
+            "capacidad": 1,
+            "estado": "mantenimiento"
+          },
+          {
+            "id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "nombre": "Oficina privada 1",
+            "tipo": "oficina",
+            "capacidad": 4,
+            "estado": "activo"
+          },
+          {
+            "id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+            "nombre": "Prueba aislada",
+            "tipo": "oficina",
+            "capacidad": 9,
+            "estado": "activo"
+          },
+          {
+            "id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "nombre": "Sala de reuniones A",
+            "tipo": "sala_reunion",
+            "capacidad": 10,
+            "estado": "activo"
+          },
+          {
+            "id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "nombre": "Sala de reuniones B",
+            "tipo": "sala_reunion",
+            "capacidad": 6,
+            "estado": "activo"
+          }
+        ],
+        "total": 6,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/empresas",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "d0695cca-20b1-43af-9963-4a4fd392700f",
+            "nombre": "Empresa Dos",
+            "rut": "774567895",
+            "contacto": "contacto@empresados.cl",
+            "activa": true
+          },
+          {
+            "id": "6942c8ee-542d-4755-ade9-d5583f41316b",
+            "nombre": "Empresa Tres",
+            "rut": "765432103",
+            "contacto": "contacto@empresatres.cl",
+            "activa": false
+          },
+          {
+            "id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "nombre": "Empresa Uno",
+            "rut": "761234560",
+            "contacto": "contacto@empresauno.cl",
+            "activa": true
+          },
+          {
+            "id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+            "nombre": "Empresa actualizada",
+            "rut": "111111111",
+            "contacto": "test@example.test",
+            "activa": true
+          }
+        ],
+        "total": 4,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/disponibilidades",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "20a36ffd-c4a7-4268-9663-72636c3284d1",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "69421779-549a-4dc5-ad6a-70b9692c90f5",
+            "espacio_id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "a72464ea-b05d-4328-b832-2da07548b6df",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "aa4706ce-a4a2-4da3-945a-87e385852755",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "dia_semana": 0,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "8146f157-a4c6-4991-bd60-b42da5cb024c",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "9c291a4e-d976-4293-a1eb-4e8393d74368",
+            "espacio_id": "1931ef86-252e-4c00-9acb-9b6115b7e224",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "bddcd232-2a14-4fbc-94b0-c5dee2426b69",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "f981d63a-e2ec-4799-8061-b3e387853031",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 1,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "5b3c0d0b-18e8-4aad-9504-10f75dabba8e",
+            "espacio_id": "f5d118a5-ba37-42bc-9560-ab3870e05b2e",
+            "dia_semana": 2,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          },
+          {
+            "id": "65119680-b992-46b9-a6e3-3ba32a3ccad9",
+            "espacio_id": "f8370d72-91b1-4f34-874e-bfd8b4b94d09",
+            "dia_semana": 2,
+            "hora_apertura": "09:00:00",
+            "hora_cierre": "18:00:00",
+            "activa": true
+          }
+        ],
+        "total": 21,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 3
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/reservas",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "items": [
+          {
+            "id": "ce4a1499-4f91-4295-9975-5a527af45269",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "empresa_id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "fecha_inicio": "2026-10-26T10:00:00Z",
+            "fecha_fin": "2026-10-26T11:00:00Z",
+            "estado": "confirmada"
+          },
+          {
+            "id": "9c08cefe-8852-4fc5-939e-70c51171a9dc",
+            "espacio_id": "94d8f5e2-2171-446e-ad4e-b703046a0e9f",
+            "empresa_id": "38a29241-ebfc-4951-b19b-8cdaf926b360",
+            "fecha_inicio": "2026-10-26T11:00:00Z",
+            "fecha_fin": "2026-10-26T12:00:00Z",
+            "estado": "confirmada"
+          },
+          {
+            "id": "fc47fc70-e481-4605-ab28-2bdd20a412f4",
+            "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+            "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+            "fecha_inicio": "2026-11-01T10:00:00Z",
+            "fecha_fin": "2026-11-01T11:00:00Z",
+            "estado": "confirmada"
+          }
+        ],
+        "total": 3,
+        "pagina": 1,
+        "limite": 10,
+        "total_paginas": 1
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas/fc47fc70-e481-4605-ab28-2bdd20a412f4/cancelar",
+      "input": null,
+      "expected": 200,
+      "obtained": 200,
+      "response": {
+        "id": "fc47fc70-e481-4605-ab28-2bdd20a412f4",
+        "espacio_id": "42c0125d-4649-456c-b1cd-8a439ea5f904",
+        "empresa_id": "2abd3b5b-241a-4884-813c-c6242f16ccb7",
+        "fecha_inicio": "2026-11-01T10:00:00Z",
+        "fecha_fin": "2026-11-01T11:00:00Z",
+        "estado": "cancelada"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas/fc47fc70-e481-4605-ab28-2bdd20a412f4/cancelar",
+      "input": null,
+      "expected": 409,
+      "obtained": 409,
+      "response": {
+        "error": {
+          "code": "CONFLICT",
+          "message": "La reserva ya está cancelada.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/reservas/00f8279e-5ec7-41ef-92ba-0f50f1a2d2e0/cancelar",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La reserva no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/disponibilidades/72f663fb-eb9c-4df9-8ee9-671562693c84",
+      "input": null,
+      "expected": 204,
+      "obtained": 204,
+      "response": null
+    },
+    {
+      "method": "DELETE",
+      "path": "/disponibilidades/72f663fb-eb9c-4df9-8ee9-671562693c84",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La disponibilidad no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/espacios",
+      "input": {
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      },
+      "expected": 201,
+      "obtained": 201,
+      "response": {
+        "id": "c8f88b58-50a2-46ad-bd2a-d872c8af43f9",
+        "nombre": "Prueba aislada",
+        "tipo": "oficina",
+        "capacidad": 9,
+        "estado": "activo"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/espacios/c8f88b58-50a2-46ad-bd2a-d872c8af43f9",
+      "input": null,
+      "expected": 204,
+      "obtained": 204,
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/espacios/c8f88b58-50a2-46ad-bd2a-d872c8af43f9",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "El espacio no existe.",
+          "details": []
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/empresas",
+      "input": {
+        "nombre": "Empresa actualizada",
+        "rut": "22222222-2",
+        "contacto": "test@example.test",
+        "activa": true
+      },
+      "expected": 201,
+      "obtained": 201,
+      "response": {
+        "id": "c921be84-a898-402b-a542-6700eb06e23b",
+        "nombre": "Empresa actualizada",
+        "rut": "222222222",
+        "contacto": "test@example.test",
+        "activa": true
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/empresas/c921be84-a898-402b-a542-6700eb06e23b",
+      "input": null,
+      "expected": 204,
+      "obtained": 204,
+      "response": null
+    },
+    {
+      "method": "GET",
+      "path": "/empresas/c921be84-a898-402b-a542-6700eb06e23b",
+      "input": null,
+      "expected": 404,
+      "obtained": 404,
+      "response": {
+        "error": {
+          "code": "RESOURCE_NOT_FOUND",
+          "message": "La empresa no existe.",
+          "details": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+services:
+  api:
+    build: .
+    image: coworking-api:local
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-coworking}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-desarrollo_local}
+      DB_NAME: ${POSTGRES_DB:-coworking}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    networks:
+      - red_local
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-coworking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-desarrollo_local}
+      POSTGRES_DB: ${POSTGRES_DB:-coworking}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - red_local
+
+  adminer:
+    image: adminer:4
+    restart: always
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - red_local
+
+volumes:
+  postgres_data:
+
+networks:
+  red_local:
+    driver: bridge
