@@ -283,3 +283,25 @@ uv run --frozen python tests_manual/check_compose.py --project backend-2026-grup
 ```
 
 Usar el nombre de proyecto Compose real si se inició con `-p`. Esta prueba crea un espacio propio, recrea solamente la API (interrumpe sus conexiones), verifica el mismo UUID/capacidad y elimina ese espacio. Conserva la base PostgreSQL y sus demás datos. No ejecutarla simultáneamente con la suite dentro del contenedor. El resultado queda en tests_manual/compose_results.json.
+
+## Publicar la imagen en GHCR
+
+El archivo `.github/workflows/publish-image.yml` construye la imagen de la API
+cuando se suben cambios a `main` y la publica en:
+
+```text
+ghcr.io/vicenkks/backend-2026-grupo-05:latest
+```
+
+También guarda una etiqueta con el SHA del commit para identificar cada versión.
+Usa `GITHUB_TOKEN`, que GitHub proporciona automáticamente; no hace falta crear
+un token personal ni guardar contraseñas en el YAML.
+
+Para ver el resultado, abre **Actions → Publicar imagen en GHCR** en GitHub.
+También puedes ejecutarlo con **Run workflow**, seleccionando `main`.
+El archivo debe estar subido a GitHub para que funcione. La publicación no ejecuta
+los tests ni despliega en Kubero.
+
+Tras la primera publicación, la imagen aparece en **Packages**. Si debe poder
+descargarse sin autenticación, cambia la visibilidad del paquete a **Public**
+desde sus ajustes.
