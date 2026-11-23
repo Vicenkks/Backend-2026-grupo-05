@@ -1,3 +1,4 @@
+from presentation.security.auth import business_permission
 
 from typing import Annotated
 from uuid import UUID
@@ -22,6 +23,7 @@ from presentation.schemas.dtos.reserva_query_dto import ReservaQueryDTO
 
 
 router = APIRouter(
+    dependencies=[Depends(business_permission)],
     prefix="/reservas",
     tags=["Reservas"],
 )

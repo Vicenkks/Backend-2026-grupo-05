@@ -1,3 +1,5 @@
+> Actualización de entrega final: autenticación y pruebas implementadas; ver [auth-testing.md](auth-testing.md). Los resultados de 72 comprobaciones citados más abajo son históricos. CI/CD y Kubero siguen pendientes.
+
 # Evidencia por criterio de código
 
 Esta matriz relaciona la implementación con la rúbrica; no sustituye la calificación del docente.

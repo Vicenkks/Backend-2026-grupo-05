@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from domain.errors import ResourceNotFound, Conflict
+from domain.auth import Unauthorized, Forbidden
 
 
 def response(status, code, message, details=None):
@@ -14,6 +15,17 @@ def response(status, code, message, details=None):
 
 
 def register_error_handlers(app):
+    @app.exception_handler(Unauthorized)
+    async def unauthorized(request, error):
+        result = response(401, "UNAUTHORIZED", error)
+        result.headers["WWW-Authenticate"] = "Bearer"
+        result.headers["Cache-Control"] = "no-store"
+        return result
+
+    @app.exception_handler(Forbidden)
+    async def forbidden(request, error):
+        return response(403, "FORBIDDEN", error)
+
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, error: HTTPException):
         codes = {400: "BUSINESS_RULE_VIOLATION", 404: "RESOURCE_NOT_FOUND", 409: "CONFLICT"}

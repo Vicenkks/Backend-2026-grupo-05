@@ -1,0 +1,17 @@
+name: coworking-auth-test
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_USER: coworking_test
+      POSTGRES_PASSWORD: test_only_password
+      POSTGRES_DB: postgres
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coworking_test -d postgres"]
+      interval: 1s
+      timeout: 3s
+      retries: 30

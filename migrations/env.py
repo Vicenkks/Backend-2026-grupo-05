@@ -9,6 +9,8 @@ from infrastructure.models.empresa_model import EmpresaModel
 from infrastructure.models.espacio_model import EspacioModel
 from infrastructure.models.reserva_model import ReservaModel
 
+from infrastructure.models.auth_model import UserModel, RefreshModel, RecoveryModel, AttemptModel
+
 config = context.config
 config.set_main_option("sqlalchemy.url", (DATABASE_URL.render_as_string(hide_password=False) if hasattr(DATABASE_URL, "render_as_string") else DATABASE_URL).replace("%", "%%"))
 

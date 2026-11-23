@@ -35,6 +35,12 @@ def configure_openapi(app):
         for path, operations in document["paths"].items():
             entity = path.strip("/").split("/")[0]
             for method, operation in operations.items():
+                for code, message in {"401": "Autenticación requerida o inválida", "403": "Permiso u origen insuficiente"}.items():
+                    operation["responses"][code] = {"description": message, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ErrorResponse"}}}}
+                if entity not in EXAMPLES:
+                    for code, message in {"400": "Regla de seguridad incumplida", "409": "Identificador duplicado", "422": "Entrada inválida"}.items():
+                        operation["responses"][code] = {"description": message, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ErrorResponse"}}}}
+                    continue
                 singular = {"espacios": "espacio", "empresas": "empresa", "disponibilidades": "disponibilidad", "reservas": "reserva"}[entity]
                 if path.endswith("/cancelar"):
                     summary = "Cancelar una reserva futura"

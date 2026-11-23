@@ -11,7 +11,7 @@ En el escenario propuesto, la administración de un coworking recibe solicitudes
 - Administración del coworking: registra espacios, horarios y empresas; consulta y mantiene las reservas.
 - Representantes de empresas: solicitan espacios y necesitan conocer o cancelar sus reservas.
 
-Son actores del problema, no roles autenticados implementados en esta versión.
+La API actual sirve al personal interno: lectores consultan y administradores gestionan las operaciones. Los representantes siguen siendo actores del problema; no hay portal de autoservicio ni aislamiento por empresa. Los usuarios de acceso son independientes de la entidad Empresa.
 
 ## P3. Consecuencias
 
@@ -38,9 +38,9 @@ Espacios (nombre, tipo, capacidad, estado), empresas (nombre, RUT, contacto, act
 
 ## P6. Exclusiones
 
-- Autenticación y permisos por actor.
+- Portal de autoservicio e identidad vinculada a una empresa específica.
 - Pagos, facturación y tarifas.
-- Frontend y notificaciones.
+- Frontend y notificaciones de negocio (sí se incluye correo de recuperación).
 - Garantía de exclusión de reservas frente a escrituras simultáneas de múltiples procesos.
 
 ## P7. Criterios de aceptación
@@ -55,3 +55,7 @@ Espacios (nombre, tipo, capacidad, estado), empresas (nombre, RUT, contacto, act
 | El GET de espacios filtra, ordena y pagina con total coherente | Comparación de dos páginas. |
 | Un espacio actualizado y una reserva sobreviven al reinicio | El runner detiene y vuelve a iniciar Uvicorn. |
 | La preparación de una base vacía carga todas las entidades | Migraciones, seeders repetidos y conteos. |
+
+## Seguridad de acceso
+
+Registro como lector, login, permisos admin para modificaciones, renovación y logout. Recuperación de contraseña de uso único, con invalidación de sesiones. Los escenarios y comandos verificables están en [auth-testing.md](auth-testing.md).

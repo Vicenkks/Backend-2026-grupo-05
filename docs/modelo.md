@@ -86,3 +86,14 @@ erDiagram
 Cada disponibilidad/reserva requiere su espacio; cada reserva requiere su empresa. Existen relaciones 1:N tanto en claves foráneas como en `relationship(back_populates=...)`. La API verifica referencias y la BD impide borrados que dejarían registros huérfanos. Las reservas canceladas conservan las relaciones y el historial.
 
 La migración inicial crea UUID, restricciones de capacidad, estados, horarios y fechas; índice único de RUT e índices de consultas de reservas por empresa/espacio y fechas.
+
+## Identidad y sesiones (migración 7a01_auth)
+
+La entidad de dominio `User` contiene id, email, hash de contraseña, rol, estado y versión de token. Es independiente de Empresa: los roles son internos del coworking.
+
+- `users`: email único, hash Argon2id y rol restringido a lector/admin.
+- `refresh_tokens`: relación N:1 con users; hash único, familia, expiración, usado y revocado.
+- `recovery_tokens`: relación N:1 con users; jti, expiración y consumo.
+- `auth_attempts`: clave HMAC del propósito/identificador, inicio de ventana y contador. No guarda correos ni contraseñas.
+
+Refresh y recuperación bloquean la fila del usuario durante la transacción. El cambio de contraseña incrementa token_version y revoca todos los permisos anteriores de esa cuenta.

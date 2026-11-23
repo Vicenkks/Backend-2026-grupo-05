@@ -21,12 +21,13 @@ from uuid import uuid4
 ROOT = Path(__file__).resolve().parents[1]
 records = []
 BASE = ''
+ACCESS = ''
 
 
 def request(method, path, expected, body=None):
     req = urllib.request.Request(BASE + path, method=method,
         data=None if body is None else json.dumps(body).encode(),
-        headers={'Content-Type': 'application/json'})
+        headers={'Content-Type': 'application/json', 'Authorization': 'Bearer ' + ACCESS})
     try:
         result = urllib.request.urlopen(req, timeout=10)
     except urllib.error.HTTPError as error:
@@ -43,7 +44,7 @@ def request(method, path, expected, body=None):
 
 
 def run(report):
-    global BASE
+    global BASE, ACCESS
     with databases() as (database_url, rollback_url), tempfile.TemporaryDirectory(prefix='coworking-tests-') as tmp:
         env = dict(os.environ, DATABASE_URL=database_url)
         def command(*args):
@@ -90,7 +91,7 @@ with SessionLocal() as session:
                     log.seek(0)
                     raise RuntimeError(log.read())
                 try:
-                    urllib.request.urlopen(BASE+'/espacios', timeout=.5).close()
+                    urllib.request.urlopen(BASE+'/health', timeout=.5).close()
                     return proc
                 except (OSError, urllib.error.URLError):
                     time.sleep(.1)
@@ -99,7 +100,23 @@ with SessionLocal() as session:
             raise RuntimeError('API did not become ready')
         try:
             process = start()
+            # Cuenta descartable administradora en la BD exclusiva de esta ejecución.
+            bootstrap = """from application.services.auth_service import AuthService
+from infrastructure.repositories.auth_repository import AuthRepository
+from infrastructure.database import SessionLocal
+with SessionLocal.begin() as session:
+    service = AuthService(AuthRepository(session))
+    user = service.register('regression@example.com', 'Regression-password-2026')
+    service.repository.user(user_id=user.id).role = 'admin'
+"""
+            subprocess.run([sys.executable, '-c', bootstrap], cwd=ROOT, env=env, check=True, capture_output=True)
+            login_req = urllib.request.Request(BASE + '/auth/login',
+                data=json.dumps({'email':'regression@example.com','password':'Regression-password-2026'}).encode(),
+                headers={'Content-Type':'application/json'})
+            with urllib.request.urlopen(login_req, timeout=10) as response:
+                ACCESS = json.load(response)['access_token']
             schema = request('GET', '/openapi.json', 200)
+            schema['paths'] = {path: ops for path, ops in schema['paths'].items() if not path.startswith('/auth')}
             assert sum(len(v) for v in schema['paths'].values()) == 19
             for operations in schema['paths'].values():
                 for operation in operations.values():

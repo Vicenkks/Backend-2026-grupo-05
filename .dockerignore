@@ -6,3 +6,6 @@
 __pycache__
 .pytest_cache
 /workspace
+.coverage*
+htmlcov
+reports

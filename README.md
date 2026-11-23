@@ -1,3 +1,55 @@
+# Autenticación y pruebas de la entrega final
+
+La versión actual incorpora registro, login, JWT, permisos de lector/administrador,
+rotación de refresh, logout y recuperación de contraseña mediante un enlace en JSON.
+Guía y decisiones: [docs/auth-testing.md](docs/auth-testing.md).
+
+## Preparación inicial
+
+```sh
+uv sync --frozen
+cp -n .env.example .env
+# Generar un secreto local; copiar el resultado a JWT_SECRET en .env, nunca a Git:
+uv run python -c 'import secrets; print(secrets.token_urlsafe(48))'
+docker compose up --build -d --wait
+```
+
+`JWT_SECRET` es obligatorio (mínimo 32 bytes). En desarrollo HTTP, `COOKIE_SECURE=false`;
+en HTTPS debe ser `true`. Swagger: http://localhost:8000/docs. No requiere un servicio de correo.
+
+Las cuentas nuevas son lectoras. Tras registrar una cuenta, un operador con acceso
+al servidor puede habilitarla como administradora:
+
+```sh
+docker compose exec api python -m scripts.set_role persona@example.com admin
+```
+
+El comando invalida las sesiones previas: iniciar sesión otra vez desde `/auth/login`. Swagger aplica el
+`access_token` automáticamente, sin pulsar Authorize. No hay cuentas ni contraseñas administrativas
+predeterminadas. Los GET de negocio requieren Bearer; POST/PUT/DELETE requieren admin.
+Los roles representan personal interno del coworking, no aislamiento entre empresas.
+
+## Pruebas actuales
+
+```sh
+make install
+make test-unit         # Sin PostgreSQL ni Docker
+make test-integration  # PostgreSQL de prueba en puerto 55432
+make test-e2e          # Servidor Uvicorn real, cliente HTTP externo y recuperación por enlace
+make test              # Toda la suite; falla si la cobertura baja de 85 %
+make test-down         # Elimina solo el entorno de pruebas
+```
+
+Reportes generados: `reports/tests.xml`, `reports/coverage.xml` y
+`reports/htmlcov/index.html`. La cobertura incluye ramas y los subprocesos de la API;
+abarca app, dominio, aplicación, infraestructura y presentación.
+Los reportes locales no se versionan ni contienen tokens o contraseñas de usuarios reales.
+
+La base de prueba usa credenciales exclusivas de test y bases con nombres aleatorios;
+se eliminan al finalizar. No utiliza la base configurada en `.env`.
+Las 72 comprobaciones anteriores siguen ejecutándose dentro de la regresión E2E,
+ahora autenticadas con una cuenta administradora descartable.
+
 # PostgreSQL y psycopg2
 
 La API usa PostgreSQL 16 con SQLAlchemy y psycopg2 (dependencia psycopg2-binary ya fijada en uv.lock). Compose espera el healthcheck de db antes de aplicar migraciones y arrancar la API. Credenciales incluidas: solo desarrollo local.
@@ -5,15 +57,32 @@ La API usa PostgreSQL 16 con SQLAlchemy y psycopg2 (dependencia psycopg2-binary 
 ```sh
 cp .env.example .env
 docker compose up --build -d --wait
-# Adminer opcional: servidor db, credenciales de .env
-docker compose --profile admin up -d
+# Interfaz para administrar PostgreSQL
+docker compose up -d pgadmin
 ```
+
+Abre pgAdmin en http://localhost:8080. Inicia sesión con `PGADMIN_DEFAULT_EMAIL`
+y `PGADMIN_DEFAULT_PASSWORD` de `.env` (por defecto: `admin@example.com` y `admin_local`,
+solo para uso local).
+
+Para conectar la base, elige **Add New Server**:
+
+- **General → Name:** Coworking.
+- **Connection → Host name/address:** `db`.
+- **Port:** `5432`.
+- **Maintenance database:** el valor de `POSTGRES_DB` (por defecto `coworking`).
+- **Username:** el valor de `POSTGRES_USER` (por defecto `coworking`).
+- **Password:** el valor de `POSTGRES_PASSWORD` en `.env`.
+
+Pulsa **Save**. La cuenta de pgAdmin y el usuario de PostgreSQL son distintos.
+Los ajustes de pgAdmin se conservan en `pgadmin_data`; sus variables de acceso se usan
+al crear la cuenta por primera vez.
 
 Los datos se conservan en postgres_data. Las bases SQLite anteriores no se importan automáticamente. Para ejecutar la API fuera de Docker: levantar db, configurar las variables DB_* de .env y ejecutar alembic upgrade head y uvicorn. DATABASE_URL, si existe, tiene prioridad; eliminar cualquier valor SQLite anterior.
 
 # Referencia de la API
 
-Backend académico para que la administración de un coworking gestione espacios y horarios, y las empresas registren y cancelen reservas sin superposiciones. No incluye frontend, autenticación ni pagos.
+Backend académico para que la administración de un coworking gestione espacios y horarios, y las empresas registren y cancelen reservas sin superposiciones. Incluye autenticación para personal interno; no incluye frontend ni pagos.
 
 Python 3.14, FastAPI, Pydantic, SQLAlchemy y Alembic. PostgreSQL 16 almacena los datos mediante SQLAlchemy y el driver psycopg2. Todos los horarios de atención y reservas se interpretan en **UTC**.
 
@@ -64,7 +133,7 @@ La migración `3f7290eb2a4f` crea las cuatro tablas, claves foráneas, restricci
 
 Las reservas de ejemplo se ubican en el siguiente día laborable y tienen una hora de duración. El arranque también verifica/carga los ejemplos; nunca crea el esquema por fuera de Alembic.
 
-## Contrato REST: 19 operaciones
+## Contrato REST de negocio: 19 operaciones, más 7 de autenticación
 
 | Recurso | Métodos y rutas | Respuesta exitosa |
 |---|---|---|
@@ -163,7 +232,7 @@ Ejemplo: `POST /reservas` valida el DTO; el servicio consulta espacio, empresa y
 
 Diagramas de clases y datos: [docs/modelo.md](docs/modelo.md). Matriz de cumplimiento y resumen de cambios: [docs/rubrica_codigo.md](docs/rubrica_codigo.md).
 
-## Pruebas y evidencias reproducibles
+## Comprobaciones de negocio y evidencias históricas
 
 ```sh
 docker compose up -d db
@@ -175,13 +244,13 @@ docker compose cp api:/tmp/results.json tests_manual/results.docker.json
 
 La suite usa psycopg2 y las dependencias del proyecto, crea dos bases PostgreSQL con nombres aleatorios, aplica migraciones, ejecuta seeders dos veces y levanta su propio servidor en un puerto libre. Verifica las 19 operaciones, CRUD, errores uniformes, reglas, consulta combinada e integridad. Detiene y vuelve a iniciar el proceso para verificar datos modificados y reservas persistentes. Finalmente elimina únicamente las bases que creó, incluso ante fallos, sin tocar la base de desarrollo. Requiere que el usuario DB_USER tenga permiso CREATEDB (el usuario de Compose lo tiene). Configura DB_HOST, DB_PORT, DB_USER y DB_PASSWORD; no usa DATABASE_URL de desarrollo para elegir la base de prueba.
 
-[tests_manual/results.json](tests_manual/results.json) y [tests_manual/results.docker.json](tests_manual/results.docker.json) registran 72 comprobaciones HTTP exitosas en local y dentro de Docker. [tests_manual/compose_results.json](tests_manual/compose_results.json) registra healthcheck y persistencia tras recrear el contenedor. El reporte de cada suite conserva solicitudes, entradas, resultados esperados y obtenidos de la última ejecución exitosa. La salida del proceso es distinta de cero ante fallos. [tests_manual/casos.md](tests_manual/casos.md) explica los escenarios y [tests_manual/requests.http](tests_manual/requests.http) permite una demostración complementaria.
+Los siguientes reportes históricos son de la versión anterior a autenticación; para evidencia actual ejecutar `make test`. [tests_manual/results.json](tests_manual/results.json) y [tests_manual/results.docker.json](tests_manual/results.docker.json) registran 72 comprobaciones HTTP exitosas en local y dentro de Docker. [tests_manual/compose_results.json](tests_manual/compose_results.json) registra healthcheck y persistencia tras recrear el contenedor. El reporte de cada suite conserva solicitudes, entradas, resultados esperados y obtenidos de la última ejecución exitosa. La salida del proceso es distinta de cero ante fallos. [tests_manual/casos.md](tests_manual/casos.md) explica los escenarios y [tests_manual/requests.http](tests_manual/requests.http) permite una demostración complementaria.
 
 ## Decisiones y limitaciones
 
 PostgreSQL y su volumen permiten separar la API de la persistencia. Las restricciones e índices cubren integridad básica. La prevención de solapamientos consulta antes de insertar: una futura versión concurrente debería incorporar restricciones de exclusión o bloqueo transaccional en PostgreSQL. No se garantiza la exclusión entre solicitudes simultáneas en varios workers.
 
-No incluye autenticación, control de acceso ni pagos; no es una configuración lista para producción. No se requieren frontend, CI/CD ni porcentaje de cobertura para esta entrega.
+La autenticación y el control de acceso están implementados; no incluye pagos ni frontend. CI/CD y despliegue en Kubero siguen pendientes. La suite exige al menos 85 % de cobertura. El entorno Compose es local; revisar secretos, HTTPS y orígenes antes de desplegar.
 
 ## Equipo y evidencias Git pendientes de completar por el grupo
 
@@ -209,7 +278,8 @@ El bundle debe provenir del administrador de la red. No se copia a la imagen. Do
 Con la pila iniciada y desde la raíz del repositorio:
 
 ```sh
-uv run --frozen python tests_manual/check_compose.py --project sql
+# Definir CHECK_ACCESS_TOKEN en el entorno con un JWT admin vigente (sin versionarlo).
+uv run --frozen python tests_manual/check_compose.py --project backend-2026-grupo-05
 ```
 
 Usar el nombre de proyecto Compose real si se inició con `-p`. Esta prueba crea un espacio propio, recrea solamente la API (interrumpe sus conexiones), verifica el mismo UUID/capacidad y elimina ese espacio. Conserva la base PostgreSQL y sus demás datos. No ejecutarla simultáneamente con la suite dentro del contenedor. El resultado queda en tests_manual/compose_results.json.

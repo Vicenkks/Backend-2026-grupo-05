@@ -11,4 +11,35 @@ dependencies = [
     "python-dotenv>=1.2.4",
     "sqlalchemy>=2.1.5",
     "pydantic>=2.13.5",
+    "pyjwt>=2.15.1",
+    "argon2-cffi>=25.1.0",
+    "email-validator>=2.4.0",
 ]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.6",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers --import-mode=importlib"
+markers = ["unit: sin BD ni red", "integration: PostgreSQL real", "e2e: servidor HTTP y PostgreSQL reales"]
+
+[tool.coverage.run]
+source = ["app", "domain", "application", "infrastructure", "presentation"]
+branch = true
+parallel = true
+patch = ["subprocess"]
+sigterm = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 85
+
+[tool.ruff]
+target-version = "py314"
