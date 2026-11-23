@@ -1,3 +1,6 @@
+# Guardar access JWT solo en una variable local del cliente HTTP; no versionarlo.
+@token = REEMPLAZAR_LOCALMENTE
+
 @base = http://localhost:8000
 
 ### Contrato
@@ -5,27 +8,34 @@ GET {{base}}/openapi.json
 
 ### Éxito: colección con filtro, orden y paginación
 GET {{base}}/espacios?estado=activo&ordenar_por=capacidad&direccion=desc&pagina=1&limite=2
+Authorization: Bearer {{token}}
 
 ### Éxito: crear espacio. Copiar el id de la respuesta para consultar/actualizar.
 POST {{base}}/espacios
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"nombre":"Sala demostración","tipo":"sala_reunion","capacidad":8,"estado":"activo"}
 
 ### Error de validación: 422
 POST {{base}}/espacios
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"nombre":"Sala inválida","tipo":"sala_reunion","capacidad":0,"estado":"activo"}
 
 ### Inexistente: 404
 GET {{base}}/espacios/00000000-0000-4000-8000-000000000000
+Authorization: Bearer {{token}}
 
 ### Empresa: obtener sus identificadores para probar reservas en Swagger
 GET {{base}}/empresas
+Authorization: Bearer {{token}}
 
 ### Horarios y reservas relacionados creados por seeders
 GET {{base}}/disponibilidades?limite=100
+Authorization: Bearer {{token}}
 
 ### Listar reservas persistentes
 GET {{base}}/reservas?limite=100
+Authorization: Bearer {{token}}

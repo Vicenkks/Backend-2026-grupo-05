@@ -10,6 +10,9 @@ services:
       DB_USER: ${POSTGRES_USER:-coworking}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-desarrollo_local}
       DB_NAME: ${POSTGRES_DB:-coworking}
+      JWT_SECRET: ${JWT_SECRET:?Configura JWT_SECRET en .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:8000}
     depends_on:
       db:
         condition: service_healthy
@@ -35,11 +38,16 @@ services:
     networks:
       - red_local
 
-  adminer:
-    image: adminer:4
+  pgadmin:
+    image: dpage/pgadmin4:9.10
     restart: always
     ports:
-      - "${ADMINER_PORT:-8080}:8080"
+      - "127.0.0.1:${PGADMIN_PORT:-8080}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin_local}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     depends_on:
       db:
         condition: service_healthy
@@ -48,6 +56,7 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
 
 networks:
   red_local:

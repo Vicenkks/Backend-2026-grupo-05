@@ -8,7 +8,7 @@ Reservas coordinadas por canales separados pueden superponerse. Actores: adminis
 
 ## 2. Alcance y aceptación — 0:45 a 1:30
 
-Mostrar los requisitos de docs/problematica.md: administrar cuatro entidades, reservar y cancelar, consultar con filtros y conservar datos. Excluir pagos, autenticación y frontend. Señalar cinco criterios de aceptación y cómo se prueban.
+Mostrar los requisitos de docs/problematica.md: administrar cuatro entidades, reservar y cancelar, consultar con filtros y conservar datos. Excluir pagos y frontend; incluir autenticación y recuperación. Señalar cinco criterios de aceptación y cómo se prueban.
 
 ## 3. Dominio — 1:30 a 2:15
 
@@ -36,7 +36,7 @@ Consultar el espacio recién creado, ejecutar docker compose restart api, espera
 
 ## 9. Decisiones y limitaciones — 8:15 a 9:15
 
-Justificar ORM, migraciones, PostgreSQL y separación de capas. Limitación: el control de solapamientos consulta antes de insertar; varios procesos concurrentes necesitarían bloqueo o restricción de exclusión. Mejoras futuras: autenticación por roles y control de concurrencia. No afirmar que están implementadas.
+Justificar ORM, migraciones, PostgreSQL y separación de capas. Limitación: el control de solapamientos consulta antes de insertar; varios procesos concurrentes necesitarían bloqueo o restricción de exclusión. Autenticación por roles implementada: demostrar lector frente a admin. El control concurrente de reservas sigue siendo una mejora futura; refresh y recuperación sí tienen bloqueo transaccional y pruebas simultáneas.
 
 ## 10. Cierre y criterios de aceptación — 9:15 a 10:00
 
@@ -47,3 +47,7 @@ Relacionar la demostración con los criterios de aceptación y localizar las evi
 Sortear a la persona que expone; el resto participa en preguntas. Cronometrar 10 minutos y reservar 5 para preguntas. Practicar: ¿dónde se valida una referencia?, ¿qué hace un mapper?, ¿cuándo hay rollback?, ¿qué conserva el volumen?, ¿por qué 409 y no 400?, ¿cómo se evita afectar la BD de desarrollo en pruebas?, ¿cómo se calcula total_paginas?
 
 Registrar el ensayo real: fecha, persona sorteada, duración, preguntas falladas y correcciones. No marcarlo completado sin realizarlo.
+
+## Demostración adicional de auth y pruebas
+
+Preparar cuentas de prueba lector/admin y ejecutar los tres flujos de `docs/auth-testing.md`. Incorporarlos al ensayo de diez minutos y mostrar reportes actuales. La presentación HTML histórica aún debe reorganizarse para la pauta final, junto con CI/CD y Kubero cuando se implementen.

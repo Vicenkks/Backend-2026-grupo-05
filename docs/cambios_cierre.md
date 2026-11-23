@@ -8,7 +8,7 @@ Base revisada: main, commit e32e9fe. Rama de trabajo: feat/cierre-rubrica.
 | tests_manual/check_compose.py | Prueba reproducible de creación, recreación de API, recuperación del registro y eliminación del registro propio. |
 | tests_manual/results.json y results.docker.json | Evidencias actuales: 72 comprobaciones HTTP aprobadas en local y 72 dentro de Docker, ambas con PostgreSQL. |
 | tests_manual/compose_results.json | Evidencia PostgreSQL del registro conservado al recrear la API. |
-| docker-compose.yml | API_PORT y DB_PORT configurables; Adminer opcional sin nombre fijo que impida usar otro proyecto. |
+| docker-compose.yml | API_PORT y DB_PORT configurables; pgAdmin en localhost:8080, con configuración guardada en un volumen propio. |
 | README.md, tests_manual/casos.md, docs/rubrica_codigo.md | Documentación coherente con PostgreSQL, permisos de pruebas, aislamiento y comandos reproducibles. |
 | docs/problematica.md | P1–P7: situación, actores, consecuencias, datos, once requisitos, exclusiones y ocho criterios comprobables. |
 | docs/defensa.md y presentacion.html | Guion de 10 minutos, diez diapositivas navegables/imprimibles y preguntas de ensayo. |

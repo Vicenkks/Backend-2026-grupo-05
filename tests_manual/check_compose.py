@@ -1,5 +1,6 @@
 """Check PostgreSQL persistence across API recreation, using one owned test record."""
 import argparse
+import os
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -10,9 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run(project, report):
+    if not os.getenv('CHECK_ACCESS_TOKEN'):
+        raise RuntimeError('Define CHECK_ACCESS_TOKEN con un access JWT de administrador vigente.')
     compose = ['docker', 'compose', '-p', project]
     def invoke(*args):
-        return subprocess.run(compose + list(args), cwd=ROOT, check=True,
+        return subprocess.run(compose + (['exec', '-e', 'CHECK_ACCESS_TOKEN'] + list(args[1:]) if args[0] == 'exec' else list(args)), cwd=ROOT, check=True,
                               capture_output=True, text=True).stdout
 
     record_id = None
@@ -20,12 +23,12 @@ def run(project, report):
               'status': 'failed', 'database': 'PostgreSQL', 'driver': 'psycopg2'}
     try:
         record = json.loads(invoke('exec', '-T', 'api', 'python', '-c', """
-import json, urllib.request
+import json, urllib.request, os
 from infrastructure.database import engine
 assert engine.dialect.name == 'postgresql' and engine.dialect.driver == 'psycopg2'
 body={'nombre':'Persistencia Docker','tipo':'oficina','capacidad':13,'estado':'activo'}
 request=urllib.request.Request('http://127.0.0.1:8000/espacios',
-    data=json.dumps(body).encode(),headers={'Content-Type':'application/json'})
+    data=json.dumps(body).encode(),headers={'Content-Type':'application/json', 'Authorization':'Bearer ' + os.environ['CHECK_ACCESS_TOKEN']})
 with urllib.request.urlopen(request, timeout=10) as response:
     assert response.status == 201
     print(response.read().decode())
@@ -33,8 +36,9 @@ with urllib.request.urlopen(request, timeout=10) as response:
         record_id = str(UUID(record['id']))
         invoke('up', '--force-recreate', '--no-build', '--no-deps', '-d', '--wait', 'api')
         obtained = json.loads(invoke('exec', '-T', 'api', 'python', '-c', f"""
-import json, urllib.request
-with urllib.request.urlopen('http://127.0.0.1:8000/espacios/{record_id}',timeout=10) as response:
+import json, urllib.request, os
+request = urllib.request.Request('http://127.0.0.1:8000/espacios/{record_id}', headers={{'Authorization': 'Bearer ' + os.environ['CHECK_ACCESS_TOKEN']}})
+with urllib.request.urlopen(request,timeout=10) as response:
     assert response.status == 200
     print(response.read().decode())
 """))
@@ -50,8 +54,8 @@ with urllib.request.urlopen('http://127.0.0.1:8000/espacios/{record_id}',timeout
         try:
             if record_id:
                 invoke('exec', '-T', 'api', 'python', '-c', f"""
-import urllib.request
-request=urllib.request.Request('http://127.0.0.1:8000/espacios/{record_id}',method='DELETE')
+import urllib.request, os
+request=urllib.request.Request('http://127.0.0.1:8000/espacios/{record_id}',method='DELETE', headers={{'Authorization': 'Bearer ' + os.environ['CHECK_ACCESS_TOKEN']}})
 with urllib.request.urlopen(request,timeout=10) as response:
     assert response.status == 204
 """)

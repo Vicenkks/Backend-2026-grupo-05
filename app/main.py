@@ -3,9 +3,14 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from presentation.routers.auth_router import router as auth_router
+from presentation.security.auth import allowed_origins
+from infrastructure.security.tokens import secret
 
 from presentation.errors import register_error_handlers
 from presentation.openapi import configure_openapi
+from presentation.docs import configure_docs
 
 from infrastructure.database import SessionLocal
 
@@ -60,6 +65,7 @@ def cargar_datos_iniciales() -> None:
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     # Las tablas las crea Alembic:
     # uv run alembic upgrade head
+    secret()
     cargar_datos_iniciales()
     yield
 
@@ -67,8 +73,18 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(
     title="Sistema de Reservas de Coworking",
     lifespan=lifespan,
+    docs_url=None,
 )
 
+app.add_middleware(CORSMiddleware, allow_origins=allowed_origins(), allow_credentials=True,
+                   allow_methods=["GET", "POST", "PUT", "DELETE"],
+                   allow_headers=["Authorization", "Content-Type"])
+
+@app.get("/health", include_in_schema=False)
+def health():
+    return {"status": "ok"}
+
+app.include_router(auth_router)
 app.include_router(espacio_router)
 app.include_router(empresa_router)
 app.include_router(disponibilidad_router)
@@ -77,3 +93,4 @@ app.include_router(reserva_router)
 
 register_error_handlers(app)
 configure_openapi(app)
+configure_docs(app)
