@@ -11,6 +11,7 @@ Backend para administrar espacios, empresas, horarios de disponibilidad y reserv
 
 ## Instalación y ejecución
 
+
 Requisitos: Docker con Compose v2 y uv.
 
 ```sh
