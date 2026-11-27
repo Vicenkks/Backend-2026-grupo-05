@@ -1,0 +1,55 @@
+name: Pruebas y cobertura
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Pruebas (cobertura mínima 85%)
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: coworking_test
+          POSTGRES_PASSWORD: test_only_password
+          POSTGRES_DB: postgres
+        ports:
+          - 55432:5432
+        options: >-
+          --health-cmd "pg_isready -U coworking_test -d postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      - name: Ejecutar pruebas con cobertura
+        run: >-
+          uv run pytest --cov --cov-fail-under=85
+          --cov-report=term-missing
+          --cov-report=xml:reports/coverage.xml
+          --junitxml=reports/tests.xml
+
+      - name: Guardar reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas
+          path: reports/

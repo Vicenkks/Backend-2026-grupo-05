@@ -9,7 +9,11 @@ permissions:
   contents: read
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+
   publish:
+    needs: tests
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
