@@ -17,5 +17,5 @@ jobs:
         if: ${{ github.event.workflow_run.name == 'Publicar imagen en GHCR' }}
         run: |
           curl -s -o /dev/null -w "Client: %{http_code}\n" -X GET \
-            "https://kubero.inf.uct.cl/api/apps/actividad/production/server1/restart" \
+            "https://kubero.inf.uct.cl/api/apps/coworking/production/coworking/restart" \
             -H "Authorization: Bearer ${{ secrets.KUBERO_TOKEN }}"
